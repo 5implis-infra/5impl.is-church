@@ -1,0 +1,24 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Docker Build & Push"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Trigger Coolify Deploys
+    runs-on: ubuntu-latest
+    # Não roda no nektos/act
+    if: ${{ github.event.workflow_run.conclusion == 'success' && !env.ACT }}
+    steps:
+      - name: Deploy site
+        run: |
+          curl -fsSL -X POST "${{ secrets.COOLIFY_WEBHOOK_SITE }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+
+      - name: Deploy control-plane
+        run: |
+          curl -fsSL -X POST "${{ secrets.COOLIFY_WEBHOOK_CONTROL_PLANE }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"

@@ -1,0 +1,29 @@
+packages:
+  # Apps — caminhos atuais (migrar para apps/* via submodule - ver BACKLOG.md Épico 1)
+  - "site/adponte.com"
+
+  # Apps — novos projetos (caminho final)
+  - "apps/gestao"
+  - "apps/gestao/apps/*"
+  - "apps/gestao/services/*"
+  - "apps/gestao/packages/*"
+  - "apps/midia-captura"
+
+  # Services — caminhos atuais (migrar para services/* via submodule)
+  - "appmidia/n8n"
+
+  # Services — novos projetos
+  - "services/control-plane"
+  - "services/media-local"
+
+  # Workers — caminhos atuais (migrar para workers/* via submodule)
+  - "appmidia/transcript"
+
+  # Workers — novos projetos
+  - "workers/ffmpeg"
+  - "workers/davinci"
+  - "workers/images"
+  - "workers/telegram-bot"
+
+  # Shared packages
+  - "packages/*"
