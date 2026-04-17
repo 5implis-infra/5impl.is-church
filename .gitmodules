@@ -1,8 +1,8 @@
 [submodule "appmidia/transcript"]
-	path = appmidia/transcript
+	path = workers/transcript
 	url = git@github.com:adponte-infra/transcript.git
 [submodule "appmidia/n8n"]
-	path = appmidia/n8n
+	path = services/n8n
 	url = git@github.com:adponte-infra/n8n.git
 [submodule "apps/gestao"]
 	path = apps/gestao
@@ -29,5 +29,5 @@
 	path = workers/telegram-bot
 	url = git@github.com:adponte-infra/worker-telegram-bot.git
 [submodule "site/adponte.com"]
-	path = site/adponte.com
+	path = apps/site
 	url = git@github.com:adponte-infra/site.git
