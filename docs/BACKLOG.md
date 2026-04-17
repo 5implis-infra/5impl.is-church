@@ -14,54 +14,49 @@
 
 ---
 
-## ÉPICO 1 — Git Submodules & Repositórios GitHub
+## ÉPICO 1 — Git Submodules & Repositórios GitHub ✅
 
-**Contexto:** O monorepo root precisará referenciar cada projeto como submodule.
-Hoje `site/adponte.com` e `appmidia/transcript` têm repos locais com `.git` próprios,
-mas não está confirmado se estão no GitHub. O repo root do monorepo ainda não existe.
+**Contexto:** Organização `adponte-infra` criada no GitHub. Todos os repos criados como privados.
+11 submodules configurados no monorepo root, todos apontando para `git@github.com:adponte-infra/`.
 
-**Dependências:**
-- Organização ou conta GitHub definida (ex: `github.com/adponte/`)
-- Decisão de naming dos repos (ex: `adponte/site`, `adponte/transcript`, `adponte/n8n`)
-- Migração do histórico local para o GitHub
+**Repos criados:**
+- ✅ `adponte-infra/monorepo` — root do monorepo
+- ✅ `adponte-infra/site` → `apps/site/`
+- ✅ `adponte-infra/gestao` → `apps/gestao/`
+- ✅ `adponte-infra/midia-captura` → `apps/midia-captura/`
+- ✅ `adponte-infra/n8n` → `services/n8n/`
+- ✅ `adponte-infra/control-plane` → `services/control-plane/`
+- ✅ `adponte-infra/media-local` → `services/media-local/`
+- ✅ `adponte-infra/transcript` → `workers/transcript/`
+- ✅ `adponte-infra/worker-ffmpeg` → `workers/ffmpeg/`
+- ✅ `adponte-infra/worker-davinci` → `workers/davinci/`
+- ✅ `adponte-infra/worker-images` → `workers/images/`
+- ✅ `adponte-infra/worker-telegram-bot` → `workers/telegram-bot/`
 
-**Ações necessárias (gerar Spec):**
-- [ ] Criar org/conta GitHub para o projeto
-- [ ] Criar repo `adponte/monorepo` (root) como privado
-- [ ] Criar repo `adponte/site` e fazer push do histórico existente
-- [ ] Criar repo `adponte/transcript` e fazer push do histórico existente
-- [ ] Criar repo `adponte/n8n` (novo, vazio inicialmente)
-- [ ] Executar `git submodule add` para cada projeto no root
+**Pendente:**
 - [ ] Definir política de branches (main, develop, feature/*)
 - [ ] Definir proteções de branch (PR obrigatório? reviews?)
 
-**Decisões abertas:**
-- Naming convention dos repos GitHub
-- Estratégia de migração do histórico local (rebase, merge, --allow-unrelated-histories)
-- Política de branch protection rules
-
 ---
 
-## ÉPICO 2 — GHCR (GitHub Container Registry)
+## ÉPICO 2 — GHCR (GitHub Container Registry) ✅
 
-**Contexto:** O CI/CD fará build das imagens Docker e fará push para o GHCR.
-O GHCR é gratuito para repos privados com limite de storage do plano GitHub.
+**Contexto:** CI/CD configurado com build + push para GHCR em todos os projetos com Dockerfile.
 
-**Dependências:**
-- Repos GitHub criados (Épico 1)
-- GitHub Actions configurado
-- Secrets de autenticação no GHCR
+**Decisões tomadas:**
+- ✅ **Naming convention:** `ghcr.io/adponte-infra/{image-name}` via `${{ github.repository_owner }}`
+  - `ghcr.io/adponte-infra/site`
+  - `ghcr.io/adponte-infra/transcript`
+  - `ghcr.io/adponte-infra/control-plane`
+  - `ghcr.io/adponte-infra/worker-ffmpeg`
+- ✅ **Tagging strategy:** `latest` + `sha-{sha}` + branch name (via `docker/metadata-action`)
+- ✅ **Permissões:** `packages: write` + `GITHUB_TOKEN` — sem secrets extras necessários
+- ✅ **Multi-platform:** linux/amd64 apenas (VPS Hetzner e RunPod são x86)
+- ✅ **`docker.yml` criado para:** `apps/site`, `workers/transcript`, `services/control-plane`, `workers/ffmpeg`
 
-**Ações necessárias (gerar Spec):**
-- [ ] Definir naming convention das imagens (`ghcr.io/adponte/site:latest`)
-- [ ] Definir estratégia de tagging (latest, sha, semver)
-- [ ] Configurar `GITHUB_TOKEN` permissions para push ao GHCR
-- [ ] Definir política de retenção de imagens (quantas versões manter)
-- [ ] Configurar `packages` como privados na org GitHub
-
-**Decisões abertas:**
-- Tagging strategy: `latest` apenas, ou `sha` + `latest`?
-- Multi-platform builds (linux/amd64 apenas, ou também arm64 para dev em Mac M-series)?
+**Pendente (configuração manual no GitHub UI):**
+- [ ] Configurar `packages` como privados na org `adponte-infra` (Settings → Packages)
+- [ ] Definir política de retenção de imagens (sugestão: manter últimas 10 versões)
 
 ---
 
@@ -84,28 +79,48 @@ no dashboard do RunPod. A API do RunPod permite automatizar isso.
 
 ---
 
-## ÉPICO 3 — Coolify: Deploy via Docker + Webhooks
+## ÉPICO 3 — Coolify: Deploy via GHCR + Webhooks
 
-**Contexto:** O Coolify está rodando na VPS Hetzner. Precisamos migrar de
-"deploy via integração GitHub direta" para "deploy via imagem Docker do GHCR + webhook".
+**Contexto:** Dois projetos já estavam em produção antes do monorepo:
+- `apps/site` → já rodando no Coolify (migrar de build direto do GitHub → imagem GHCR)
+- `workers/transcript` → já rodando no RunPod (ver Épico 2B, não é Coolify)
 
-**Dependências:**
-- GHCR configurado (Épico 2)
-- Acesso admin ao Coolify
-- Imagens Docker funcionando
+Os demais projetos com Dockerfile (`services/control-plane`, `workers/ffmpeg`) ainda não
+estão configurados no Coolify — serão novos deploys.
 
-**Ações necessárias (gerar Spec):**
-- [ ] Mapear serviços que já existem no Coolify (site, outros)
-- [ ] Reconfigurar cada serviço para usar imagem GHCR em vez de build direto
-- [ ] Configurar webhook URL do Coolify para cada serviço
-- [ ] Adicionar webhook secret como GitHub Secret (`COOLIFY_WEBHOOK_SITE`, etc.)
-- [ ] Definir variáveis de ambiente por serviço no Coolify
-- [ ] Configurar zero-downtime restart policy
-- [ ] Testar rollback via troca de tag de imagem
+**Decisão tomada:** `DIRECTUS_URL` é build arg no Dockerfile (já implementado no Épico 2).
+A imagem é construída no CI com a URL embutida — não é env var em runtime.
 
-**Decisões abertas:**
-- O site Astro tem variáveis de build-time (ex: `DIRECTUS_URL`) — como injetar no build do CI?
-- Usar `DIRECTUS_URL` como build arg no Dockerfile ou como env var em runtime?
+**Estado atual por projeto:**
+
+| Projeto | Plataforma | Estado |
+|---------|-----------|--------|
+| `apps/site` | Coolify (VPS) | Rodando via build direto do GitHub — migrar para GHCR |
+| `workers/transcript` | RunPod | Rodando — ver Épico 2B para automação |
+| `services/control-plane` | Coolify (VPS) | Não configurado ainda |
+| `workers/ffmpeg` | Coolify (VPS) | Não configurado ainda |
+
+**Ações necessárias:**
+
+### 3A — `apps/site` (migração) ✅
+- ✅ No Coolify: source migrado para "Docker image (GHCR)"
+- ✅ Imagem: `ghcr.io/adponte-infra/site:latest`
+- ✅ Credencial GHCR configurada no servidor via `docker login ghcr.io`
+- ✅ `COOLIFY_WEBHOOK_SITE` e `COOLIFY_TOKEN` adicionados como GitHub Secrets
+- ✅ Ports Exposes corrigido para `4321` (era `80` do Nixpack)
+- ✅ Pipeline completo testado: push → GHCR → webhook → Coolify → adponte.com
+
+### 3B — `services/control-plane` (novo deploy)
+- [ ] Criar novo serviço no Coolify apontando para `ghcr.io/adponte-infra/control-plane:latest`
+- [ ] Configurar variáveis de ambiente (Postgres URL, Redis URL, etc.)
+- [ ] Copiar webhook URL → GitHub Secret `COOLIFY_WEBHOOK_CONTROL_PLANE`
+
+### 3C — `workers/ffmpeg` (novo deploy)
+- [ ] Criar novo serviço no Coolify apontando para `ghcr.io/adponte-infra/worker-ffmpeg:latest`
+- [ ] Copiar webhook URL → GitHub Secret `COOLIFY_WEBHOOK_FFMPEG`
+
+**Pré-requisito manual (GitHub):**
+- [ ] Adicionar credencial GHCR no Coolify (username: `adponte-infra`, password: Personal Access Token com `read:packages`)
 
 ---
 
@@ -239,7 +254,8 @@ que precisarão de subdomínios e certificados SSL.
 
 | Prioridade | Épicos |
 |-----------|--------|
-| P0 — Bloqueante | Épico 1 (Git/GitHub), Épico 2 (GHCR) |
+| ✅ Concluído | Épico 1 (Git/GitHub), Épico 2 (GHCR) |
+| P0 — Bloqueante | Épico 3 (Coolify) |
 | P1 — Necessário para CI | Épico 3 (Coolify), Épico 4 (Cache) |
 | P2 — Qualidade de vida | Épico 5 (act local) |
 | P3 — Futuro | Épico 6 (novos projetos), Épico 7 (DNS) |
