@@ -1,7 +1,7 @@
 # Plano de Migração para Monorepo — AD Ponte
 
-> Atualizado em: 2026-04-16
-> Status geral: ✅ Scaffolding concluído — próximo passo: setup de submodules (BACKLOG Épico 1)
+> Atualizado em: 2026-04-17
+> Status geral: ✅ Monorepo completo — estrutura final, submodules no GitHub, caminhos migrados
 
 ---
 
@@ -41,55 +41,55 @@
 ## Estrutura alvo do Monorepo
 
 ```
-adponte/                              ← root repo Git (novo, privado)
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                    ← turbo run lint test
-│       ├── docker.yml                ← turbo run docker:build docker:push
-│       └── deploy.yml                ← webhooks Coolify (skip no act)
-├── .gitignore
-├── .gitmodules                       ← gerado por git submodule add
-├── .actrc
-├── package.json                      ← root workspace
-├── pnpm-workspace.yaml
-├── turbo.json
-├── CLAUDE.md
+adponte/                              ← github.com/adponte-infra/monorepo ✅
+├── .github/workflows/
+│   ├── ci.yml                        ← turbo run lint test ✅
+│   ├── docker.yml                    ← turbo run docker:build docker:push ✅
+│   └── deploy.yml                    ← webhooks Coolify (skip no act) ✅
+├── .gitignore ✅
+├── .gitmodules ✅
+├── .actrc ✅
+├── package.json ✅
+├── pnpm-workspace.yaml ✅
+├── turbo.json ✅
+├── CLAUDE.md ✅
 │
 ├── apps/
-│   ├── site/                         ← submodule: adponte.com (Astro Hybrid)
-│   ├── gestao/                       ← submodule: SaaS gestão (mini-monorepo interno)
-│   │   ├── apps/
-│   │   │   ├── web/                  ← Next.js + Tailwind CSS
-│   │   │   └── app/                  ← PWA/Mobile (stack TBD)
-│   │   ├── services/
-│   │   │   └── api/                  ← Hono + tRPC + Prisma
-│   │   ├── packages/
-│   │   │   ├── types/                ← tipos compartilhados (web+app+api)
-│   │   │   └── db/                   ← Prisma schema + client
-│   │   ├── turbo.json
-│   │   ├── pnpm-workspace.yaml
-│   │   └── package.json
-│   └── midia-captura/                ← submodule: PWA captura (stack TBD)
+│   ├── site/                         ← submodule: adponte-infra/site (Astro Hybrid) ✅
+│   ├── gestao/                       ← submodule: adponte-infra/gestao ✅
+│   │   ├── apps/web/                 ← Next.js 15 + Tailwind CSS 4 ✅
+│   │   ├── apps/app/                 ← PWA/Mobile (stack TBD) ✅
+│   │   ├── services/api/             ← Hono + tRPC + Prisma ✅
+│   │   ├── packages/types/ ✅
+│   │   └── packages/db/ ✅
+│   └── midia-captura/                ← submodule: adponte-infra/midia-captura ✅
 │
 ├── services/
-│   ├── n8n/                          ← submodule: workflow JSONs do n8n
-│   ├── control-plane/                ← submodule: API + dashboard mídia (Hono + tRPC + Prisma)
-│   └── media-local/                  ← submodule: API mini PC (stack TBD)
+│   ├── n8n/                          ← submodule: adponte-infra/n8n ✅
+│   ├── control-plane/                ← submodule: adponte-infra/control-plane ✅
+│   └── media-local/                  ← submodule: adponte-infra/media-local ✅
 │
 ├── workers/
-│   ├── transcript/                   ← submodule: Whisper (Python + RunPod)
-│   ├── ffmpeg/                       ← submodule: cortes/shorts (Python + FFmpeg + Docker)
-│   ├── davinci/                      ← submodule: reels (Python + DaVinci headless)
-│   ├── images/                       ← submodule: imagens (Python + OpenCV + PIL)
-│   └── telegram-bot/                 ← submodule: aprovação (Python ou Node)
+│   ├── transcript/                   ← submodule: adponte-infra/transcript ✅
+│   ├── ffmpeg/                       ← submodule: adponte-infra/worker-ffmpeg ✅
+│   ├── davinci/                      ← submodule: adponte-infra/worker-davinci ✅
+│   ├── images/                       ← submodule: adponte-infra/worker-images ✅
+│   └── telegram-bot/                 ← submodule: adponte-infra/worker-telegram-bot ✅
 │
-├── packages/
-│   └── types/                        ← tipos TS globais (Job, MediaAsset, Event)
+├── packages/types/ ✅
 │
 └── docs/
-    ├── PLAN.md                       ← este arquivo
-    ├── BACKLOG.md                    ← itens para Spec Driven
-    └── ARCHITECTURE.md               ← ADRs
+    ├── PLAN.md ✅
+    ├── BACKLOG.md ✅
+    ├── ARCHITECTURE.md ✅
+    ├── flow.md ✅
+    └── mapa-mental.md ✅
+```
+
+### Clone completo
+
+```bash
+git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git
 ```
 
 ---
@@ -98,17 +98,17 @@ adponte/                              ← root repo Git (novo, privado)
 
 | Projeto | Caminho | Tech | Status sessão | Deploy |
 |---------|---------|------|--------------|--------|
-| Site institucional | `apps/site/` | Astro Hybrid + Tailwind + Directus | ✅ Mapeado | VPS/Coolify |
-| Gestão de igrejas | `apps/gestao/` | Next.js + Hono + tRPC + Prisma | ✅ Mapeado | VPS/Coolify |
-| App de captura | `apps/midia-captura/` | PWA (TBD) | ✅ Mapeado | — |
-| n8n workflows | `services/n8n/` | JSON exports | ✅ Mapeado | VPS/Coolify |
-| Control plane mídia | `services/control-plane/` | Hono + tRPC + Prisma | ✅ Mapeado | VPS/Coolify |
-| API local (mini PC) | `services/media-local/` | TBD | ✅ Mapeado | Mini PC |
-| Transcrição | `workers/transcript/` | Python + faster-whisper | ✅ Mapeado | RunPod |
-| Worker FFmpeg | `workers/ffmpeg/` | Python + FFmpeg | ✅ Mapeado | VPS/Coolify |
-| Worker DaVinci | `workers/davinci/` | Python + DaVinci API | ✅ Mapeado | VPS dedicado |
-| Worker imagens | `workers/images/` | Python + OpenCV + PIL | ✅ Mapeado | VPS/Coolify |
-| Telegram bot | `workers/telegram-bot/` | Python ou Node (TBD) | ✅ Mapeado | VPS/Coolify |
+| Site institucional | `apps/site/` | Astro Hybrid + Tailwind + Directus | ✅ No GitHub | VPS/Coolify |
+| Gestão de igrejas | `apps/gestao/` | Next.js + Hono + tRPC + Prisma | ✅ No GitHub | VPS/Coolify |
+| App de captura | `apps/midia-captura/` | PWA (TBD) | ✅ No GitHub | — |
+| n8n workflows | `services/n8n/` | JSON exports | ✅ No GitHub | VPS/Coolify |
+| Control plane mídia | `services/control-plane/` | Hono + tRPC + Prisma | ✅ No GitHub | VPS/Coolify |
+| API local (mini PC) | `services/media-local/` | TBD | ✅ No GitHub | Mini PC |
+| Transcrição | `workers/transcript/` | Python + faster-whisper | ✅ No GitHub | RunPod |
+| Worker FFmpeg | `workers/ffmpeg/` | Python + FFmpeg | ✅ No GitHub | VPS/Coolify |
+| Worker DaVinci | `workers/davinci/` | Python + DaVinci API | ✅ No GitHub | VPS dedicado |
+| Worker imagens | `workers/images/` | Python + OpenCV + PIL | ✅ No GitHub | VPS/Coolify |
+| Telegram bot | `workers/telegram-bot/` | Python ou Node (TBD) | ✅ No GitHub | VPS/Coolify |
 
 ---
 
@@ -304,7 +304,7 @@ adponte/                              ← root repo Git (novo, privado)
 
 | Símbolo | Significado |
 |---------|------------|
-| ✅ | Pendente |
+| ⬜ | Pendente |
 | 🟡 | Em andamento |
-| ✅ | Concluído / já existe |
+| ✅ | Concluído |
 | ❌ | Bloqueado |
