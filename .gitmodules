@@ -1,0 +1,33 @@
+[submodule "appmidia/transcript"]
+	path = appmidia/transcript
+	url = git@github.com:adponte-infra/transcript.git
+[submodule "appmidia/n8n"]
+	path = appmidia/n8n
+	url = git@github.com:adponte-infra/n8n.git
+[submodule "apps/gestao"]
+	path = apps/gestao
+	url = git@github.com:adponte-infra/gestao.git
+[submodule "apps/midia-captura"]
+	path = apps/midia-captura
+	url = git@github.com:adponte-infra/midia-captura.git
+[submodule "services/control-plane"]
+	path = services/control-plane
+	url = git@github.com:adponte-infra/control-plane.git
+[submodule "services/media-local"]
+	path = services/media-local
+	url = git@github.com:adponte-infra/media-local.git
+[submodule "workers/ffmpeg"]
+	path = workers/ffmpeg
+	url = git@github.com:adponte-infra/worker-ffmpeg.git
+[submodule "workers/davinci"]
+	path = workers/davinci
+	url = git@github.com:adponte-infra/worker-davinci.git
+[submodule "workers/images"]
+	path = workers/images
+	url = git@github.com:adponte-infra/worker-images.git
+[submodule "workers/telegram-bot"]
+	path = workers/telegram-bot
+	url = git@github.com:adponte-infra/worker-telegram-bot.git
+[submodule "site/adponte.com"]
+	path = site/adponte.com
+	url = git@github.com:adponte-infra/site.git
