@@ -13,9 +13,14 @@ jobs:
     # Não roda no nektos/act
     if: ${{ github.event.workflow_run.conclusion == 'success' && !env.ACT }}
     steps:
-      - name: Deploy site
+      - name: Deploy api
         run: |
-          curl -fsSL -X POST "${{ secrets.COOLIFY_WEBHOOK_SITE }}" \
+          curl -fsSL -X POST "${{ secrets.COOLIFY_WEBHOOK_API }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+
+      - name: Deploy admin-web
+        run: |
+          curl -fsSL -X POST "${{ secrets.COOLIFY_WEBHOOK_ADMIN_WEB }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
 
       - name: Deploy control-plane

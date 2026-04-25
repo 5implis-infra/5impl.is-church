@@ -1,23 +1,6 @@
 packages:
-  # Apps
-  - "apps/site"
-  - "apps/gestao"
-  - "apps/gestao/apps/*"
-  - "apps/gestao/services/*"
-  - "apps/gestao/packages/*"
-  - "apps/midia-captura"
-
-  # Services
-  - "services/n8n"
-  - "services/control-plane"
-  - "services/media-local"
-
-  # Workers
-  - "workers/transcript"
-  - "workers/ffmpeg"
-  - "workers/davinci"
-  - "workers/images"
-  - "workers/telegram-bot"
-
-  # Shared packages
+  - "apps/*"
+  - "services/*"
+  - "workers/media/*"
+  - "workers/system/*"
   - "packages/*"

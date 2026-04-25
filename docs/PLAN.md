@@ -1,302 +1,233 @@
-# Plano de Migração para Monorepo — AD Ponte
+# Plano de Arquitetura — AD Ponte
 
-> Atualizado em: 2026-04-17
-> Status geral: ✅ Monorepo completo — estrutura final, submodules no GitHub, caminhos migrados
+> Atualizado em: 2026-04-25
+> Status geral: 🟡 Em execução — separação de `site` e `saas` em repos independentes
 
 ---
 
-## Decisões de Infra-estrutura
+## Decisão arquitetural
+
+`site` e `saas` são **repositórios completamente independentes**.
+Compartilham apenas contexto de cliente/portfólio, não estrutura de código.
+
+| Item | `site` | `saas` |
+|------|--------|--------|
+| Stack | Astro Hybrid + Tailwind + Directus | Next.js, Expo, Hono, tRPC, Prisma, Python workers |
+| Propósito | Site institucional | SaaS multi-tenant para igrejas |
+| Workflow | Build estático/SSR + rebuild via webhook | CI/CD por componente + Docker/GHCR/Coolify |
+| Repo Git | `adponte-infra/site` | `adponte-infra/monorepo` (reaproveitado) |
+| Submodules | Não | Sim (22 submodules) |
+| Design system | Próprio | `packages/ui` interno |
+
+---
+
+## Layout local de trabalho
+
+```
+/home/itbrda/dev/adponte/      # pasta local, sem versionamento
+├─ saas/                        # repo: adponte-infra/monorepo
+└─ site/                        # repo: adponte-infra/site
+```
+
+A pasta `adponte/` é apenas conveniência local. Não é repo Git.
+
+---
+
+## Decisões de Infra-estrutura (escopo `saas`)
 
 | # | Decisão | Escolha | Notas |
 |---|---------|---------|-------|
-| 1 | Estratégia Git | **Submodules** | Cada projeto mantém seu próprio repo Git |
-| 2 | Estrutura de diretórios | **Turborepo convencional + `services/`** | `apps/`, `services/`, `workers/`, `packages/` |
-| 3 | Package manager (root) | **pnpm** | `pnpm-workspace.yaml` define workspaces JS/TS |
-| 4 | Shared packages | **Sim** | `packages/` desde o início |
-| 5 | CI/CD | **GitHub Actions + GHCR + Coolify webhook** | Build no CI, push para GHCR, deploy via webhook |
+| 1 | Estratégia Git interna | **Submodules** | Cada componente do SaaS é repo próprio |
+| 2 | Estrutura de diretórios | **Turborepo + domínios** | `apps/`, `services/`, `workers/media/`, `workers/system/`, `packages/`, `infra/` |
+| 3 | Package manager | **pnpm** | `pnpm-workspace.yaml` |
+| 4 | Shared packages | **Sim** | `packages/` com 7 pacotes |
+| 5 | CI/CD | **GitHub Actions + GHCR + Coolify webhook** | |
 | 6 | CI local | **nektos/act** | `.actrc` na raiz, `.secrets.act` gitignored |
-| 7 | Visibilidade do repo | **Privado** | GitHub repo privado |
-| 8 | Turborepo Remote Cache | **Self-hosted na VPS** | `ducktors/turborepo-remote-cache` via Docker |
-| 9 | Deploy site Astro | **Node container** | Astro Hybrid (`output: 'hybrid'` + `@astrojs/node`) |
-| 10 | Hospedagem | **Hetzner VPS via Coolify** | Deploy via imagem Docker (GHCR) + webhook |
-| 11 | Produto | **SaaS multi-tenant** | Nasce como produto para múltiplas igrejas |
+| 7 | Visibilidade | **Privado** | |
+| 8 | Turborepo Remote Cache | **Self-hosted na VPS** | `ducktors/turborepo-remote-cache` |
+| 9 | Hospedagem | **Hetzner VPS via Coolify** | |
+| 10 | Produto | **SaaS multi-tenant** | |
+| 11 | Granularidade Git | **1 repo por componente** | 22 submodules |
+
+## Decisões (escopo `site`)
+
+| # | Decisão | Escolha |
+|---|---------|---------|
+| 1 | Estratégia Git | Repo único, sem submodules |
+| 2 | Stack | Astro Hybrid (`output: 'hybrid'` + `@astrojs/node`) + Tailwind + Directus |
+| 3 | Deploy | VPS Hetzner via Coolify, container Node.js |
+| 4 | Rebuild | Webhook Directus → `repository_dispatch` → CI rebuild |
+| 5 | Visibilidade | Privado |
 
 ---
 
-## Princípios de CI/CD por nível
+## Estrutura interna do `saas`
+
+```
+saas/                                 ← github.com/adponte-infra/monorepo
+├── .github/workflows/
+│   ├── ci.yml
+│   ├── docker.yml
+│   └── deploy.yml
+├── .gitignore
+├── .gitmodules
+├── .actrc
+├── package.json                      ← @adponte/saas
+├── pnpm-workspace.yaml
+├── turbo.json
+├── tsconfig.base.json
+├── CLAUDE.md
+│
+├── apps/
+│   ├── admin-web/                    ← submodule: adponte-infra/admin-web (Next.js 15)
+│   ├── admin-app/                    ← submodule: adponte-infra/admin-app (Expo)
+│   └── member-app/                   ← submodule: adponte-infra/member-app (Expo)
+│
+├── services/
+│   ├── api/                          ← submodule: adponte-infra/api (Hono + tRPC + Prisma)
+│   ├── api-local/                    ← submodule: adponte-infra/api-local
+│   └── control-plane/                ← submodule: adponte-infra/control-plane
+│
+├── workers/
+│   ├── media/
+│   │   ├── transcript/               ← submodule: adponte-infra/transcript
+│   │   ├── ffmpeg/                   ← submodule: adponte-infra/worker-ffmpeg
+│   │   ├── davinci/                  ← submodule: adponte-infra/worker-davinci
+│   │   ├── images/                   ← submodule: adponte-infra/worker-images
+│   │   └── telegram-bot/             ← submodule: adponte-infra/worker-telegram-bot
+│   │
+│   └── system/
+│       ├── notifications/            ← submodule: adponte-infra/worker-notifications
+│       ├── sync/                     ← submodule: adponte-infra/worker-sync
+│       └── scheduled-jobs/           ← submodule: adponte-infra/worker-scheduled-jobs
+│
+├── packages/
+│   ├── api-client/                   ← submodule: adponte-infra/api-client
+│   ├── auth/                         ← submodule: adponte-infra/auth
+│   ├── core/                         ← submodule: adponte-infra/core
+│   ├── db/                           ← submodule: adponte-infra/db
+│   ├── ui/                           ← submodule: adponte-infra/ui
+│   ├── types/                        ← submodule: adponte-infra/types
+│   └── config/                       ← submodule: adponte-infra/config
+│
+├── infra/
+│   ├── n8n/                          ← submodule: adponte-infra/n8n
+│   ├── docker/                       ← diretório interno
+│   ├── postgres/                     ← diretório interno
+│   └── deploy/                       ← diretório interno
+│
+└── docs/
+    ├── PLAN.md
+    ├── EXECUTION-ROADMAP.md
+    ├── ARCHITECTURE.md
+    └── ...
+```
+
+---
+
+## Repositórios GitHub
+
+### Site
+| Repo | Caminho local | Tipo |
+|------|--------------|------|
+| adponte-infra/site | `site/` | Site institucional Astro |
+
+### SaaS — agregador
+| Repo | Caminho local | Tipo |
+|------|--------------|------|
+| adponte-infra/monorepo | `saas/` | Monorepo agregador |
+
+### SaaS — submodules (22)
+| Repo | Caminho dentro de `saas/` | Tipo |
+|------|--------------------------|------|
+| adponte-infra/admin-web | `apps/admin-web` | App |
+| adponte-infra/admin-app | `apps/admin-app` | App |
+| adponte-infra/member-app | `apps/member-app` | App |
+| adponte-infra/api | `services/api` | Service |
+| adponte-infra/api-local | `services/api-local` | Service |
+| adponte-infra/control-plane | `services/control-plane` | Service |
+| adponte-infra/transcript | `workers/media/transcript` | Worker |
+| adponte-infra/worker-ffmpeg | `workers/media/ffmpeg` | Worker |
+| adponte-infra/worker-davinci | `workers/media/davinci` | Worker |
+| adponte-infra/worker-images | `workers/media/images` | Worker |
+| adponte-infra/worker-telegram-bot | `workers/media/telegram-bot` | Worker |
+| adponte-infra/worker-notifications | `workers/system/notifications` | Worker |
+| adponte-infra/worker-sync | `workers/system/sync` | Worker |
+| adponte-infra/worker-scheduled-jobs | `workers/system/scheduled-jobs` | Worker |
+| adponte-infra/api-client | `packages/api-client` | Package |
+| adponte-infra/auth | `packages/auth` | Package |
+| adponte-infra/core | `packages/core` | Package |
+| adponte-infra/db | `packages/db` | Package |
+| adponte-infra/ui | `packages/ui` | Package |
+| adponte-infra/types | `packages/types` | Package |
+| adponte-infra/config | `packages/config` | Package |
+| adponte-infra/n8n | `infra/n8n` | Infra |
+
+---
+
+## Clone
+
+### Site (independente)
+```bash
+git clone git@github.com:adponte-infra/site.git
+```
+
+### SaaS (com submodules)
+```bash
+git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git saas
+```
+
+### Workspace local completo
+```bash
+mkdir -p ~/dev/adponte
+cd ~/dev/adponte
+git clone git@github.com:adponte-infra/site.git
+git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git saas
+```
+
+---
+
+## Princípios de CI/CD (escopo `saas`)
 
 > Cada submodule é um repo Git independente.
-> `.gitignore` e `.github/workflows/` existem em **dois níveis**:
-> no root (orquestração Turborepo) e em cada projeto (CI/CD específico).
+> `.github/workflows/` existem em **dois níveis**:
+> no root do `saas` (orquestração Turborepo) e em cada submodule (CI/CD específico).
 
 | Nível | `ci.yml` faz o quê |
 |---|---|
-| Root monorepo | `turbo run lint test` — detecta o que mudou em todos os projetos |
+| Root `saas` | `turbo run lint test` — detecta o que mudou |
 | Cada `apps/*` | Lint, typecheck, build, push Docker image |
 | Cada `services/*` | Lint, typecheck, push Docker image |
-| Cada `workers/*` | Lint, typecheck (ruff/mypy para Python), push Docker image |
+| Cada `workers/**/*` | Lint, typecheck (ruff/mypy para Python), push Docker image |
+| Cada `packages/*` | Lint, typecheck, build |
 
 ---
 
-## Estrutura alvo do Monorepo
+## Projetos do `saas`
 
-```
-adponte/                              ← github.com/adponte-infra/monorepo ✅
-├── .github/workflows/
-│   ├── ci.yml                        ← turbo run lint test ✅
-│   ├── docker.yml                    ← turbo run docker:build docker:push ✅
-│   └── deploy.yml                    ← webhooks Coolify (skip no act) ✅
-├── .gitignore ✅
-├── .gitmodules ✅
-├── .actrc ✅
-├── package.json ✅
-├── pnpm-workspace.yaml ✅
-├── turbo.json ✅
-├── CLAUDE.md ✅
-│
-├── apps/
-│   ├── site/                         ← submodule: adponte-infra/site (Astro Hybrid) ✅
-│   ├── gestao/                       ← submodule: adponte-infra/gestao ✅
-│   │   ├── apps/web/                 ← Next.js 15 + Tailwind CSS 4 ✅
-│   │   ├── apps/app/                 ← PWA/Mobile (stack TBD) ✅
-│   │   ├── services/api/             ← Hono + tRPC + Prisma ✅
-│   │   ├── packages/types/ ✅
-│   │   └── packages/db/ ✅
-│   └── midia-captura/                ← submodule: adponte-infra/midia-captura ✅
-│
-├── services/
-│   ├── n8n/                          ← submodule: adponte-infra/n8n ✅
-│   ├── control-plane/                ← submodule: adponte-infra/control-plane ✅
-│   └── media-local/                  ← submodule: adponte-infra/media-local ✅
-│
-├── workers/
-│   ├── transcript/                   ← submodule: adponte-infra/transcript ✅
-│   ├── ffmpeg/                       ← submodule: adponte-infra/worker-ffmpeg ✅
-│   ├── davinci/                      ← submodule: adponte-infra/worker-davinci ✅
-│   ├── images/                       ← submodule: adponte-infra/worker-images ✅
-│   └── telegram-bot/                 ← submodule: adponte-infra/worker-telegram-bot ✅
-│
-├── packages/types/ ✅
-│
-└── docs/
-    ├── PLAN.md ✅
-    ├── BACKLOG.md ✅
-    ├── ARCHITECTURE.md ✅
-    ├── flow.md ✅
-    └── mapa-mental.md ✅
-```
-
-### Clone completo
-
-```bash
-git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git
-```
+| Projeto | Caminho | Tech | Deploy |
+|---------|---------|------|--------|
+| Admin Web | `apps/admin-web/` | Next.js 15 + Tailwind CSS 4 | VPS/Coolify |
+| Admin App | `apps/admin-app/` | Expo (mobile/PWA) | — |
+| Member App | `apps/member-app/` | Expo (mobile/PWA) | — |
+| API SaaS | `services/api/` | Hono + tRPC + Prisma | VPS/Coolify |
+| API Local | `services/api-local/` | TBD | Mini PC |
+| Control Plane | `services/control-plane/` | Hono + tRPC + Prisma | VPS/Coolify |
+| Transcrição | `workers/media/transcript/` | Python + faster-whisper | RunPod |
+| Worker FFmpeg | `workers/media/ffmpeg/` | Python + FFmpeg | VPS/Coolify |
+| Worker DaVinci | `workers/media/davinci/` | Python + DaVinci API | VPS dedicado |
+| Worker imagens | `workers/media/images/` | Python + OpenCV + PIL | VPS/Coolify |
+| Telegram bot | `workers/media/telegram-bot/` | Python ou Node | VPS/Coolify |
+| Notifications | `workers/system/notifications/` | TBD | VPS/Coolify |
+| Sync | `workers/system/sync/` | TBD | VPS/Coolify |
+| Scheduled Jobs | `workers/system/scheduled-jobs/` | TBD | VPS/Coolify |
+| n8n workflows | `infra/n8n/` | JSON exports | VPS/Coolify |
 
 ---
 
-## Projetos do Monorepo
+## Roteiro de execução
 
-| Projeto | Caminho | Tech | Status sessão | Deploy |
-|---------|---------|------|--------------|--------|
-| Site institucional | `apps/site/` | Astro Hybrid + Tailwind + Directus | ✅ No GitHub | VPS/Coolify |
-| Gestão de igrejas | `apps/gestao/` | Next.js + Hono + tRPC + Prisma | ✅ No GitHub | VPS/Coolify |
-| App de captura | `apps/midia-captura/` | PWA (TBD) | ✅ No GitHub | — |
-| n8n workflows | `services/n8n/` | JSON exports | ✅ No GitHub | VPS/Coolify |
-| Control plane mídia | `services/control-plane/` | Hono + tRPC + Prisma | ✅ No GitHub | VPS/Coolify |
-| API local (mini PC) | `services/media-local/` | TBD | ✅ No GitHub | Mini PC |
-| Transcrição | `workers/transcript/` | Python + faster-whisper | ✅ No GitHub | RunPod |
-| Worker FFmpeg | `workers/ffmpeg/` | Python + FFmpeg | ✅ No GitHub | VPS/Coolify |
-| Worker DaVinci | `workers/davinci/` | Python + DaVinci API | ✅ No GitHub | VPS dedicado |
-| Worker imagens | `workers/images/` | Python + OpenCV + PIL | ✅ No GitHub | VPS/Coolify |
-| Telegram bot | `workers/telegram-bot/` | Python ou Node (TBD) | ✅ No GitHub | VPS/Coolify |
-
----
-
-## Tarefas — Escopo desta sessão
-
-> Serão executadas após validação do plano completo.
-> Projetos em ideação recebem **scaffolding mínimo** (README, .gitignore, package.json).
-> Projetos mapeados em detalhe recebem scaffolding completo.
-
----
-
-### Fase 0 — Root do Monorepo
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 0.1 | Criar `package.json` root | `package.json` | ✅ |
-| 0.2 | Criar `pnpm-workspace.yaml` | `pnpm-workspace.yaml` | ✅ |
-| 0.3 | Criar `turbo.json` | `turbo.json` | ✅ |
-| 0.4 | Criar `.gitignore` root | `.gitignore` | ✅ |
-| 0.5 | Criar `.actrc` | `.actrc` | ✅ |
-| 0.6 | Criar GitHub Actions — CI | `.github/workflows/ci.yml` | ✅ |
-| 0.7 | Criar GitHub Actions — Docker | `.github/workflows/docker.yml` | ✅ |
-| 0.8 | Criar GitHub Actions — Deploy | `.github/workflows/deploy.yml` | ✅ |
-| 0.9 | Criar `docs/ARCHITECTURE.md` | `docs/ARCHITECTURE.md` | ✅ |
-| 0.10 | Criar `packages/types/` scaffold | `packages/types/package.json`, `src/index.ts` | ✅ |
-
----
-
-### Fase 1 — `apps/site` (adponte.com)
-
-**Stack:** Astro Hybrid (`output: 'hybrid'` + `@astrojs/node`) · Tailwind CSS · Directus
-**Deploy:** VPS Hetzner via Coolify · Directus na mesma VPS (rede Docker interna)
-**Rebuild:** Webhook Directus → `repository_dispatch` → CI rebuild
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 1.1 | Adaptar `package.json` (adicionar `@astrojs/node`) | `apps/site/package.json` | ✅ |
-| 1.2 | Criar `Dockerfile` multi-stage (node:22-alpine) | `apps/site/Dockerfile` | ✅ |
-| 1.3 | Criar `.dockerignore` | `apps/site/.dockerignore` | ✅ |
-| 1.4 | Atualizar `README.md` | `apps/site/README.md` | ✅ |
-| 1.5 | `.gitignore` existente OK | `apps/site/.gitignore` | ✅ |
-| 1.6 | Criar GitHub Actions — CI (lint, format, knip) | `apps/site/.github/workflows/ci.yml` | ✅ |
-| 1.7 | Criar GitHub Actions — Docker build/push + webhook | `apps/site/.github/workflows/docker.yml` | ✅ |
-
----
-
-### Fase 2 — `workers/transcript`
-
-**Stack:** Python 3.10 · faster-whisper · RunPod serverless · CUDA 12.1
-**Deploy:** RunPod (GPU obrigatório) · atualização do endpoint manual por ora
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 2.1 | Criar `package.json` stub com scripts Python | `workers/transcript/package.json` | ✅ |
-| 2.2 | `Dockerfile` existente OK | `workers/transcript/Dockerfile` | ✅ |
-| 2.3 | Criar `.dockerignore` | `workers/transcript/.dockerignore` | ✅ |
-| 2.4 | Atualizar `README.md` | `workers/transcript/README.md` | ✅ |
-| 2.5 | `.gitignore` existente OK | `workers/transcript/.gitignore` | ✅ |
-| 2.6 | Criar GitHub Actions — CI (ruff + mypy) | `workers/transcript/.github/workflows/ci.yml` | ✅ |
-| 2.7 | Criar GitHub Actions — Docker build/push GHCR | `workers/transcript/.github/workflows/docker.yml` | ✅ |
-
----
-
-### Fase 3 — `services/n8n`
-
-**Stack:** n8n self-hosted (VPS/Coolify) · workflow JSONs exportados
-**Deploy:** Já rodando na VPS · sync manual por ora
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 3.1 | Criar `workflows/` com `.gitkeep` | `services/n8n/workflows/.gitkeep` | ✅ |
-| 3.2 | Criar `package.json` com script de validação JSON | `services/n8n/package.json` | ✅ |
-| 3.3 | Criar `.gitignore` | `services/n8n/.gitignore` | ✅ |
-| 3.4 | Criar `README.md` (convenção de nomes, export/import) | `services/n8n/README.md` | ✅ |
-| 3.5 | Criar GitHub Actions — CI (validação JSON) | `services/n8n/.github/workflows/ci.yml` | ✅ |
-
----
-
-### Fase 4 — `apps/gestao` (mini-monorepo)
-
-**Stack:** Next.js 15 + Tailwind CSS (web) · PWA TBD (app) · Hono + tRPC + Prisma (api)
-**Deploy:** VPS/Coolify · multi-tenant SaaS
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 4.1 | Criar root do mini-monorepo | `apps/gestao/package.json`, `turbo.json`, `pnpm-workspace.yaml` | ✅ |
-| 4.2 | Criar `.gitignore` root | `apps/gestao/.gitignore` | ✅ |
-| 4.3 | Criar `README.md` | `apps/gestao/README.md` | ✅ |
-| 4.4 | Criar GitHub Actions — CI | `apps/gestao/.github/workflows/ci.yml` | ✅ |
-| 4.5 | Scaffold `apps/web/` (Next.js) | `apps/gestao/apps/web/package.json`, `tsconfig.json`, `next.config.ts` | ✅ |
-| 4.6 | Scaffold `apps/app/` (placeholder PWA) | `apps/gestao/apps/app/package.json`, `README.md` | ✅ |
-| 4.7 | Scaffold `services/api/` (Hono + tRPC + Prisma) | `apps/gestao/services/api/package.json`, `src/index.ts`, `prisma/schema.prisma` | ✅ |
-| 4.8 | Scaffold `packages/db/` (Prisma client compartilhado) | `apps/gestao/packages/db/package.json`, `prisma/schema.prisma` | ✅ |
-| 4.9 | Scaffold `packages/types/` interno | `apps/gestao/packages/types/package.json`, `src/index.ts` | ✅ |
-
----
-
-### Fase 5 — `services/control-plane`
-
-**Stack:** Hono + tRPC + Prisma · dashboard de monitoramento · Postgres + Redis
-**Deploy:** VPS/Coolify · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 5.1 | Criar `package.json` | `services/control-plane/package.json` | ✅ |
-| 5.2 | Criar estrutura `src/` | `services/control-plane/src/index.ts` | ✅ |
-| 5.3 | Criar `Dockerfile` placeholder | `services/control-plane/Dockerfile` | ✅ |
-| 5.4 | Criar `.gitignore` | `services/control-plane/.gitignore` | ✅ |
-| 5.5 | Criar `README.md` | `services/control-plane/README.md` | ✅ |
-| 5.6 | Criar GitHub Actions — CI | `services/control-plane/.github/workflows/ci.yml` | ✅ |
-
----
-
-### Fase 6 — `apps/midia-captura`
-
-**Stack:** PWA (TBD) · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 6.1 | Criar `package.json` placeholder | `apps/midia-captura/package.json` | ✅ |
-| 6.2 | Criar `.gitignore` | `apps/midia-captura/.gitignore` | ✅ |
-| 6.3 | Criar `README.md` | `apps/midia-captura/README.md` | ✅ |
-
----
-
-### Fase 7 — `services/media-local`
-
-**Stack:** TBD · API no mini PC da igreja · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 7.1 | Criar `package.json` placeholder | `services/media-local/package.json` | ✅ |
-| 7.2 | Criar `.gitignore` | `services/media-local/.gitignore` | ✅ |
-| 7.3 | Criar `README.md` | `services/media-local/README.md` | ✅ |
-
----
-
-### Fase 8 — `workers/ffmpeg`
-
-**Stack:** Python + FFmpeg · Docker · VPS/Coolify · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 8.1 | Criar `pyproject.toml` | `workers/ffmpeg/pyproject.toml` | ✅ |
-| 8.2 | Criar `Dockerfile` placeholder | `workers/ffmpeg/Dockerfile` | ✅ |
-| 8.3 | Criar `.gitignore` (Python) | `workers/ffmpeg/.gitignore` | ✅ |
-| 8.4 | Criar `README.md` | `workers/ffmpeg/README.md` | ✅ |
-| 8.5 | Criar `package.json` stub (Turborepo) | `workers/ffmpeg/package.json` | ✅ |
-
----
-
-### Fase 9 — `workers/davinci`
-
-**Stack:** Python + DaVinci Resolve API headless · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 9.1 | Criar `pyproject.toml` | `workers/davinci/pyproject.toml` | ✅ |
-| 9.2 | Criar `Dockerfile` placeholder | `workers/davinci/Dockerfile` | ✅ |
-| 9.3 | Criar `.gitignore` (Python) | `workers/davinci/.gitignore` | ✅ |
-| 9.4 | Criar `README.md` | `workers/davinci/README.md` | ✅ |
-| 9.5 | Criar `package.json` stub (Turborepo) | `workers/davinci/package.json` | ✅ |
-
----
-
-### Fase 10 — `workers/images`
-
-**Stack:** Python + OpenCV + PIL · Docker · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 10.1 | Criar `pyproject.toml` | `workers/images/pyproject.toml` | ✅ |
-| 10.2 | Criar `Dockerfile` placeholder | `workers/images/Dockerfile` | ✅ |
-| 10.3 | Criar `.gitignore` (Python) | `workers/images/.gitignore` | ✅ |
-| 10.4 | Criar `README.md` | `workers/images/README.md` | ✅ |
-| 10.5 | Criar `package.json` stub (Turborepo) | `workers/images/package.json` | ✅ |
-
----
-
-### Fase 11 — `workers/telegram-bot`
-
-**Stack:** Python ou Node (TBD) · scaffolding mínimo (ideação)
-
-| # | Tarefa | Arquivo(s) | Status |
-|---|--------|-----------|--------|
-| 11.1 | Criar `package.json` placeholder | `workers/telegram-bot/package.json` | ✅ |
-| 11.2 | Criar `.gitignore` | `workers/telegram-bot/.gitignore` | ✅ |
-| 11.3 | Criar `README.md` | `workers/telegram-bot/README.md` | ✅ |
+Ver `docs/EXECUTION-ROADMAP.md` para o roteiro detalhado por etapas e checklists da migração para a estrutura `saas/` + `site/` independentes.
 
 ---
 

@@ -1,33 +1,88 @@
-[submodule "appmidia/transcript"]
-	path = workers/transcript
-	url = git@github.com:adponte-infra/transcript.git
-[submodule "appmidia/n8n"]
-	path = services/n8n
-	url = git@github.com:adponte-infra/n8n.git
-[submodule "apps/gestao"]
-	path = apps/gestao
-	url = git@github.com:adponte-infra/gestao.git
-[submodule "apps/midia-captura"]
-	path = apps/midia-captura
-	url = git@github.com:adponte-infra/midia-captura.git
+[submodule "services/api"]
+	path = services/api
+	url = git@github.com:adponte-infra/api.git
+	branch = main
+[submodule "services/api-local"]
+	path = services/api-local
+	url = git@github.com:adponte-infra/api-local.git
+	branch = main
 [submodule "services/control-plane"]
 	path = services/control-plane
 	url = git@github.com:adponte-infra/control-plane.git
-[submodule "services/media-local"]
-	path = services/media-local
-	url = git@github.com:adponte-infra/media-local.git
-[submodule "workers/ffmpeg"]
-	path = workers/ffmpeg
+	branch = main
+[submodule "apps/admin-web"]
+	path = apps/admin-web
+	url = git@github.com:adponte-infra/admin-web.git
+	branch = main
+[submodule "apps/admin-app"]
+	path = apps/admin-app
+	url = git@github.com:adponte-infra/admin-app.git
+	branch = main
+[submodule "apps/member-app"]
+	path = apps/member-app
+	url = git@github.com:adponte-infra/member-app.git
+	branch = main
+[submodule "workers/media/transcript"]
+	path = workers/media/transcript
+	url = git@github.com:adponte-infra/transcript.git
+	branch = main
+[submodule "workers/media/ffmpeg"]
+	path = workers/media/ffmpeg
 	url = git@github.com:adponte-infra/worker-ffmpeg.git
-[submodule "workers/davinci"]
-	path = workers/davinci
+	branch = main
+[submodule "workers/media/davinci"]
+	path = workers/media/davinci
 	url = git@github.com:adponte-infra/worker-davinci.git
-[submodule "workers/images"]
-	path = workers/images
+	branch = main
+[submodule "workers/media/images"]
+	path = workers/media/images
 	url = git@github.com:adponte-infra/worker-images.git
-[submodule "workers/telegram-bot"]
-	path = workers/telegram-bot
+	branch = main
+[submodule "workers/media/telegram-bot"]
+	path = workers/media/telegram-bot
 	url = git@github.com:adponte-infra/worker-telegram-bot.git
-[submodule "site/adponte.com"]
-	path = apps/site
-	url = git@github.com:adponte-infra/site.git
+	branch = main
+[submodule "workers/system/notifications"]
+	path = workers/system/notifications
+	url = git@github.com:adponte-infra/worker-notifications.git
+	branch = main
+[submodule "workers/system/sync"]
+	path = workers/system/sync
+	url = git@github.com:adponte-infra/worker-sync.git
+	branch = main
+[submodule "workers/system/scheduled-jobs"]
+	path = workers/system/scheduled-jobs
+	url = git@github.com:adponte-infra/worker-scheduled-jobs.git
+	branch = main
+[submodule "packages/types"]
+	path = packages/types
+	url = git@github.com:adponte-infra/types.git
+	branch = main
+[submodule "packages/db"]
+	path = packages/db
+	url = git@github.com:adponte-infra/db.git
+	branch = main
+[submodule "packages/api-client"]
+	path = packages/api-client
+	url = git@github.com:adponte-infra/api-client.git
+	branch = main
+[submodule "packages/auth"]
+	path = packages/auth
+	url = git@github.com:adponte-infra/auth.git
+	branch = main
+[submodule "packages/core"]
+	path = packages/core
+	url = git@github.com:adponte-infra/core.git
+	branch = main
+[submodule "packages/ui"]
+	path = packages/ui
+	url = git@github.com:adponte-infra/ui.git
+	branch = main
+[submodule "packages/config"]
+	path = packages/config
+	url = git@github.com:adponte-infra/config.git
+	branch = main
+[submodule "infra/n8n"]
+	path = infra/n8n
+	url = git@github.com:adponte-infra/n8n.git
+	branch = main
