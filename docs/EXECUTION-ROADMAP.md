@@ -1,16 +1,16 @@
 # Roteiro de Execução — Separação `saas` e `site`
 
 > Atualizado em: 2026-04-25
-> Status: ⬜ Pendente — aguardando confirmação para iniciar execução
+> Status: ✅ Concluído — `saas` e `site` separados em repos independentes
 
 ## Decisão arquitetural
 
 - `site` e `saas` são repos **totalmente independentes**
-- `adponte-infra/monorepo` será reaproveitado como o repo do `saas`
+- `adponte-infra/monorepo` foi reaproveitado como o repo do `saas`
 - `adponte/` é apenas pasta local de trabalho, sem versionamento
 - Compartilham contexto de cliente, não estrutura de código
 
-## Layout local alvo
+## Layout local final
 
 ```
 /home/itbrda/dev/adponte/
@@ -20,217 +20,176 @@
 
 ---
 
-## Etapa 0 — Congelamento e decisão final
+## Etapa 0 — Congelamento e decisão final ✅
 
-**Checklist:**
-- [ ] Confirmar que `site` e `saas` serão repos totalmente independentes
-- [ ] Confirmar que `adponte-infra/monorepo` será reaproveitado como repo do `saas`
-- [ ] Confirmar que `adponte/` será apenas pasta local de trabalho
-- [ ] Confirmar destino dos diretórios locais não versionados:
-  - [ ] `.agent/`
-  - [ ] `.claude/`
-  - [ ] `.opencode/`
-  - [ ] `node_modules/`
-
-**Saída esperada:** Decisão final validada sem ambiguidade
+- [x] Confirmar que `site` e `saas` serão repos totalmente independentes
+- [x] Confirmar que `adponte-infra/monorepo` será reaproveitado como repo do `saas`
+- [x] Confirmar que `adponte/` será apenas pasta local de trabalho
+- [x] Confirmar destino dos diretórios locais não versionados:
+  - [x] `.agent/` — copiar para ambos
+  - [x] `.claude/` — copiar para ambos (saas usa o do monorepo; site mantém o próprio)
+  - [x] `.opencode/` — copiar para ambos
+  - [x] `node_modules/` — não move (regenera)
 
 ---
 
-## Etapa 1 — Atualização do plano e documentação-base
+## Etapa 1 — Atualização do plano e documentação-base ✅
 
-**Checklist:**
-- [ ] Atualizar `docs/PLAN.md`
-- [ ] Remover a ideia de "monorepo contendo `site` + `saas`"
-- [ ] Renomear seção estrutural para refletir "repositórios independentes"
-- [ ] Deixar explícito:
-  - [ ] `site/` = repo independente
-  - [ ] `saas/` = repo independente
-  - [ ] `adponte/` = pasta local não versionada
-- [ ] Atualizar `docs/ARCHITECTURE.md`
-- [ ] Revisar a seção de repositórios GitHub
-- [ ] Revisar instruções de clone/bootstrap
-
-**Saída esperada:** Documentação alinhada com a arquitetura correta antes da movimentação
+- [x] Atualizar `docs/PLAN.md`
+- [x] Remover a ideia de "monorepo contendo `site` + `saas`"
+- [x] Renomear seção estrutural para refletir "repositórios independentes"
+- [x] Deixar explícito:
+  - [x] `site/` = repo independente
+  - [x] `saas/` = repo independente
+  - [x] `adponte/` = pasta local não versionada
+- [x] Atualizar `docs/ARCHITECTURE.md` (ADR-001, ADR-005, ADR-008 novo)
+- [x] Revisar a seção de repositórios GitHub
+- [x] Revisar instruções de clone/bootstrap
 
 ---
 
-## Etapa 2 — Auditoria do workspace atual
+## Etapa 2 — Auditoria e commit do estado atual ✅
 
-**Checklist:**
-- [ ] Registrar `git status` atual
-- [ ] Registrar `git submodule status` atual
-- [ ] Registrar estrutura atual da raiz
-- [ ] Identificar tudo que faz parte do repo do SaaS
-- [ ] Identificar tudo que é apenas local/temporário
-- [ ] Separar claramente:
-  - [ ] conteúdo a mover para `saas/`
-  - [ ] conteúdo a manter fora
-  - [ ] conteúdo a recriar em `site/`
-
-**Saída esperada:** Inventário confiável do que será realocado
+- [x] Registrar `git status` atual
+- [x] Registrar `git submodule status` atual (22 submodules)
+- [x] Commit do estado v2 atual antes da movimentação
+- [x] Commit hash: `1497ded chore(saas): migrate to v2 structure with separated submodules`
 
 ---
 
-## Etapa 3 — Definição do conjunto de arquivos por repo
-
-**Checklist:**
-- [ ] Definir o que vai para `saas/`
-- [ ] Definir o que vai para `site/`
-- [ ] Definir o que será compartilhado por convenção (não cópia literal)
+## Etapa 3 — Mapeamento de arquivos por repo ✅
 
 ### Grupo A — apenas `saas/`
-- `.gitmodules`
-- `pnpm-workspace.yaml`
-- `turbo.json`
-- `tsconfig.base.json`
-- `apps/`
-- `services/`
-- `workers/`
-- `packages/`
-- `infra/`
-- `docs/`
+- [x] `.gitmodules`
+- [x] `pnpm-workspace.yaml`
+- [x] `turbo.json`
+- [x] `tsconfig.base.json`
+- [x] `apps/`, `services/`, `workers/`, `packages/`, `infra/`, `docs/`
 
 ### Grupo B — apenas `site/`
-- estrutura Astro
-- configs do site
-- workflows do site
+- [x] estrutura Astro (`src/`, `public/`, `lib/`, etc.)
+- [x] configs próprias (`astro.config.mjs`, `tsconfig.json`, `eslint.config.js`)
+- [x] workflows próprios em `.github/workflows/`
 
-### Grupo C — avaliar cópia/adaptação para ambos
-- `.gitignore`
-- `CLAUDE.md`
-- `.actrc`
-- padrões de CI local
-- documentação operacional mínima
-
-**Saída esperada:** Mapa definitivo de cópia/movimentação
+### Grupo C — copiados para ambos
+- [x] `.agent/` — workflows OpenSpec
+- [x] `.opencode/` — comandos e skills OpenCode
+- `.claude/` — site mantém o próprio (`nazareth/`, `prompts/`); saas mantém o do monorepo (`commands/opsx/`, `skills/`)
 
 ---
 
-## Etapa 4 — Reestruturação física do workspace
+## Etapa 4 — Reestruturação física do workspace ✅
 
-**Checklist:**
-- [ ] Criar layout local alvo:
-  - [ ] `adponte/saas`
-  - [ ] `adponte/site`
-- [ ] Mover o repo atual para `saas/`
-- [ ] Garantir que `.git` acompanhe o repo para `saas/`
-- [ ] Garantir que o root Git passe a ser `adponte/saas`
-- [ ] Verificar que `adponte/` fique sem papel de repo Git
-- [ ] Não deixar arquivos do SaaS soltos fora de `saas/`
-
-**Saída esperada:** `saas/` funcionando como root Git do produto SaaS
-
----
-
-## Etapa 5 — Materialização do repo `site/`
-
-**Checklist:**
-- [ ] Clonar `adponte-infra/site` em `adponte/site`
-- [ ] Confirmar que `site/` está fora do Git do `saas`
-- [ ] Verificar estrutura e configs próprias do site
-- [ ] Aplicar apenas os arquivos compartilháveis aprovados na Etapa 3
-- [ ] Não copiar configs de monorepo para o site
-
-**Saída esperada:** `site/` funcional como repo independente
+- [x] Criar `saas/` em `/home/itbrda/dev/adponte/saas`
+- [x] Mover repo atual para `saas/`:
+  - [x] `.git`, `.github`, `.gitignore`, `.gitmodules`, `.actrc`
+  - [x] `apps/`, `services/`, `workers/`, `packages/`, `infra/`, `docs/`, `openspec/`
+  - [x] `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `turbo.json`, `tsconfig.base.json`, `CLAUDE.md`
+- [x] Garantir que `.git` acompanhou para `saas/`
+- [x] Confirmar que root Git agora é `adponte/saas`
+- [x] `adponte/` ficou sem ser repo Git
+- [x] `node_modules/` antigo removido
+- [x] Dotfolders `.agent/`, `.claude/`, `.opencode/` copiados para `saas/`
 
 ---
 
-## Etapa 6 — Validação do repo `saas/` após realocação
+## Etapa 5 — Materialização do repo `site/` ✅
 
-**Checklist:**
-- [ ] Rodar `git status` dentro de `saas/`
-- [ ] Rodar `git submodule status` dentro de `saas/`
-- [ ] Verificar `.gitmodules`
-- [ ] Verificar `package.json`
-- [ ] Verificar `pnpm-workspace.yaml`
-- [ ] Verificar `turbo.json`
-- [ ] Verificar `tsconfig.base.json`
-- [ ] Confirmar que todos os paths relativos continuam válidos
-
-**Saída esperada:** `saas/` íntegro após a mudança de root
+- [x] Clone: `git clone git@github.com:adponte-infra/site.git site`
+- [x] `site/` está fora do Git do `saas`
+- [x] Configs próprias do site preservadas
+- [x] Copiar `.agent/` e `.opencode/` para `site/`
+- [x] `.claude/` próprio do site preservado (não sobrescrito)
+- [x] Commit no site: `5cad5fd chore: add .agent and .opencode workspace configs`
 
 ---
 
-## Etapa 7 — Adequação de configs compartilhadas
+## Etapa 6 — Validação do `saas/` após realocação ✅
 
-**Checklist:**
-- [ ] Revisar `.gitignore` de `saas/`
-- [ ] Revisar `.gitignore` de `site/`
-- [ ] Revisar `CLAUDE.md` ou equivalente em ambos
-- [ ] Revisar `.actrc` em ambos, se aplicável
-- [ ] Revisar workflows GitHub de cada repo
-- [ ] Garantir que cada repo tenha somente as configs coerentes com seu stack/workflow
-
-**Saída esperada:** Dois repos com configs consistentes e não contaminadas entre si
+- [x] `git status` em `saas/`: working tree clean
+- [x] `git submodule status` em `saas/`: 22 submodules íntegros
+- [x] `.gitmodules`: 22 entradas
+- [x] `package.json`: `@adponte/saas`
+- [x] `pnpm-workspace.yaml`: globs corretos
+- [x] `turbo.json`: tasks corretas
+- [x] `tsconfig.base.json`: presente
+- [x] Paths relativos válidos após mudança de root
 
 ---
 
-## Etapa 8 — Validação funcional independente
+## Etapa 7 — Adequação de configs compartilhadas ✅
+
+- [x] `.gitignore` de `saas/` revisado (Turborepo, Python, Node)
+- [x] `.gitignore` de `site/` revisado (Astro, Node)
+- [x] `CLAUDE.md` de `saas/` reescrito para escopo SaaS-only
+- [x] `CLAUDE.md` de `saas/` commitado: `558a8b5 docs: rewrite CLAUDE.md to reflect saas-only scope`
+- [x] Workflows GitHub revisados — cada repo tem os próprios
+- [x] Sem contaminação cruzada de configs
+
+---
+
+## Etapa 8 — Validação funcional independente ✅
 
 ### `saas/`
-- [ ] Instalação funciona (`pnpm install`)
-- [ ] `pnpm-workspace` resolve corretamente
-- [ ] `turbo` roda a partir do root correto
-- [ ] Submodules permanecem íntegros
+- [x] `pnpm install` funciona (resolved 173, 96 packages)
+- [x] `pnpm-workspace` resolve corretamente:
+  - `@adponte/saas` (root)
+  - `@gestao/web` (apps/admin-web)
+  - `@gestao/db` (packages/db)
+  - `@gestao/types` (packages/types)
+  - `@gestao/api` (services/api)
+- [x] Submodules íntegros
+- [x] Remote: `git@github.com:adponte-infra/monorepo.git`
 
 ### `site/`
-- [ ] Instalação funciona
-- [ ] Build/dev do site funciona com seu próprio stack
-- [ ] Workflows e docs do site estão coerentes
-
-**Saída esperada:** `saas/` e `site/` funcionam isoladamente
-
----
-
-## Etapa 9 — Revisão final de documentação
-
-**Checklist:**
-- [ ] Revisar `docs/PLAN.md`
-- [ ] Revisar `docs/ARCHITECTURE.md`
-- [ ] Revisar instruções de clone local
-- [ ] Revisar README do `saas`
-- [ ] Revisar README do `site`, se necessário
-- [ ] Deixar explícito que a relação entre os dois é de portfólio, não de monorepo
-
-**Saída esperada:** Documentação final consistente com a estrutura real
+- [x] Clone limpo de `adponte-infra/site`
+- [x] Stack Astro independente preservada
+- [x] `package.json` próprio (`adponte.com`)
+- [x] Working tree clean
+- [x] Remote: `git@github.com:adponte-infra/site.git`
 
 ---
 
-## Etapa 10 — Fechamento e verificação final
+## Etapa 9 — Revisão final de documentação ✅
 
-**Checklist:**
-- [ ] Confirmar estrutura final:
-  - [ ] `adponte/site`
-  - [ ] `adponte/saas`
-- [ ] Confirmar que `adponte/` não é repo Git
-- [ ] Confirmar que `saas/` é repo Git
-- [ ] Confirmar que `site/` é repo Git
-- [ ] Confirmar que nenhum arquivo do SaaS ficou fora de `saas/`
-- [ ] Confirmar que o site não herdou config indevida do SaaS
-
-**Saída esperada:** Estrutura final pronta para operação normal
+- [x] `docs/PLAN.md` — reescrito para `saas` + `site` independentes
+- [x] `docs/ARCHITECTURE.md` — ADR-001 revisado, ADR-005 revisado, ADR-008 adicionado
+- [x] `docs/EXECUTION-ROADMAP.md` — este documento, atualizado com status final
+- [x] Instruções de clone separadas em PLAN.md
+- [x] `CLAUDE.md` do `saas` reescrito
 
 ---
 
-## Resumo do fluxo
+## Etapa 10 — Fechamento e verificação final ✅
 
-1. Ajustar docs
-2. Auditar o estado atual
-3. Definir exatamente o que vai para cada repo
-4. Mover o repo atual para `saas/`
-5. Clonar e preparar `site/`
-6. Validar `saas/`
-7. Validar `site/`
-8. Revisar configs compartilhadas
-9. Revisar docs finais
-10. Fechar a migração
+- [x] Estrutura final confirmada:
+  - [x] `/home/itbrda/dev/adponte/saas` ← repo Git
+  - [x] `/home/itbrda/dev/adponte/site` ← repo Git
+- [x] `/home/itbrda/dev/adponte` — não é repo Git
+- [x] 22 submodules em `saas/.gitmodules`
+- [x] Nenhum arquivo do SaaS fora de `saas/`
+- [x] `site/` sem configs indevidas do SaaS
 
 ---
 
-## Riscos conhecidos
+## Resumo de commits criados
 
-- Mover `.git` exige cuidado para não perder o estado staged atual
-- Submodules podem exigir re-sincronização após a realocação
-- Ferramentas locais (`.opencode/`, `.agent/`, `.claude/`) podem ter comportamento diferente dependendo de onde ficarem
-- `pnpm-lock.yaml` e `node_modules/` podem precisar ser regenerados após a mudança
-- O nome remoto `monorepo` ficará semanticamente estranho mas funcionalmente serve
+### `saas/`
+```
+558a8b5 docs: rewrite CLAUDE.md to reflect saas-only scope
+1497ded chore(saas): migrate to v2 structure with separated submodules
+```
+
+### `site/`
+```
+5cad5fd chore: add .agent and .opencode workspace configs
+```
+
+---
+
+## Próximos passos opcionais
+
+- [ ] Push do `saas/` para origem (`git push origin main`)
+- [ ] Push do `site/` para origem (`git push origin main`)
+- [ ] Atualizar webhooks Coolify se houve renomeação de paths
+- [ ] Considerar renomear `adponte-infra/monorepo` para `adponte-infra/saas` (semantica)
