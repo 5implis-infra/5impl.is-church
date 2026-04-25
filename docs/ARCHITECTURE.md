@@ -17,7 +17,7 @@ que evoluem em ritmos distintos e podem ter colaboradores diferentes.
 
 ### Decisão
 Usar **Git Submodules** apenas dentro do `saas`. Cada componente é um repositório GitHub
-privado independente. O root do `saas` (`adponte-infra/monorepo`) referencia cada
+privado independente. O root do `saas` (`adponte-infra/saas`) referencia cada
 componente como submodule via `.gitmodules`.
 
 O `site` é um repo Git independente, sem submodules. Não compõe o monorepo SaaS.
@@ -189,7 +189,7 @@ compartilhado nem ciclo de release coordenado.
 `site` e `saas` são repositórios Git **completamente independentes**:
 
 - `adponte-infra/site` — repo do site Astro
-- `adponte-infra/monorepo` — repo do SaaS (com submodules internos)
+- `adponte-infra/saas` — repo do SaaS (com submodules internos)
 
 Não existe um terceiro repo agregador acima dos dois. A pasta local
 `adponte/` é apenas conveniência de workspace, sem versionamento.

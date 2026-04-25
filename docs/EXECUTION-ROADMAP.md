@@ -6,7 +6,7 @@
 ## Decisão arquitetural
 
 - `site` e `saas` são repos **totalmente independentes**
-- `adponte-infra/monorepo` foi reaproveitado como o repo do `saas`
+- `adponte-infra/saas` foi reaproveitado como o repo do `saas`
 - `adponte/` é apenas pasta local de trabalho, sem versionamento
 - Compartilham contexto de cliente, não estrutura de código
 
@@ -14,7 +14,7 @@
 
 ```
 /home/itbrda/dev/adponte/
-├─ saas/   # repo: adponte-infra/monorepo (reaproveitado como SaaS)
+├─ saas/   # repo: adponte-infra/saas (reaproveitado como SaaS)
 └─ site/   # repo: adponte-infra/site
 ```
 
@@ -23,7 +23,7 @@
 ## Etapa 0 — Congelamento e decisão final ✅
 
 - [x] Confirmar que `site` e `saas` serão repos totalmente independentes
-- [x] Confirmar que `adponte-infra/monorepo` será reaproveitado como repo do `saas`
+- [x] Confirmar que `adponte-infra/saas` será reaproveitado como repo do `saas`
 - [x] Confirmar que `adponte/` será apenas pasta local de trabalho
 - [x] Confirmar destino dos diretórios locais não versionados:
   - [x] `.agent/` — copiar para ambos
@@ -139,7 +139,7 @@
   - `@gestao/types` (packages/types)
   - `@gestao/api` (services/api)
 - [x] Submodules íntegros
-- [x] Remote: `git@github.com:adponte-infra/monorepo.git`
+- [x] Remote: `git@github.com:adponte-infra/saas.git`
 
 ### `site/`
 - [x] Clone limpo de `adponte-infra/site`
@@ -189,7 +189,9 @@
 
 ## Próximos passos opcionais
 
-- [ ] Push do `saas/` para origem (`git push origin main`)
-- [ ] Push do `site/` para origem (`git push origin main`)
-- [ ] Atualizar webhooks Coolify se houve renomeação de paths
-- [ ] Considerar renomear `adponte-infra/monorepo` para `adponte-infra/saas` (semantica)
+- [x] Push do `saas/` para origem (`git push origin main`)
+- [x] Push do `site/` para origem (`git push origin main`)
+- [x] Renomeado `adponte-infra/monorepo` → `adponte-infra/saas`
+- [x] Remote local do `saas` atualizado para `git@github.com:adponte-infra/saas.git`
+- [x] Documentação atualizada para refletir o novo nome do repo
+- [ ] Atualizar webhooks Coolify se houve renomeação de paths (manual, fora deste plano)

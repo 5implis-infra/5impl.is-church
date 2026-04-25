@@ -20,7 +20,7 @@
 11 submodules configurados no monorepo root, todos apontando para `git@github.com:adponte-infra/`.
 
 **Repos criados:**
-- ✅ `adponte-infra/monorepo` — root do monorepo
+- ✅ `adponte-infra/saas` — root do monorepo
 - ✅ `adponte-infra/site` → `apps/site/`
 - ✅ `adponte-infra/gestao` → `apps/gestao/`
 - ✅ `adponte-infra/midia-captura` → `apps/midia-captura/`

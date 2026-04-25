@@ -15,7 +15,7 @@ Compartilham apenas contexto de cliente/portfólio, não estrutura de código.
 | Stack | Astro Hybrid + Tailwind + Directus | Next.js, Expo, Hono, tRPC, Prisma, Python workers |
 | Propósito | Site institucional | SaaS multi-tenant para igrejas |
 | Workflow | Build estático/SSR + rebuild via webhook | CI/CD por componente + Docker/GHCR/Coolify |
-| Repo Git | `adponte-infra/site` | `adponte-infra/monorepo` (reaproveitado) |
+| Repo Git | `adponte-infra/site` | `adponte-infra/saas` (reaproveitado) |
 | Submodules | Não | Sim (22 submodules) |
 | Design system | Próprio | `packages/ui` interno |
 
@@ -25,7 +25,7 @@ Compartilham apenas contexto de cliente/portfólio, não estrutura de código.
 
 ```
 /home/itbrda/dev/adponte/      # pasta local, sem versionamento
-├─ saas/                        # repo: adponte-infra/monorepo
+├─ saas/                        # repo: adponte-infra/saas
 └─ site/                        # repo: adponte-infra/site
 ```
 
@@ -64,7 +64,7 @@ A pasta `adponte/` é apenas conveniência local. Não é repo Git.
 ## Estrutura interna do `saas`
 
 ```
-saas/                                 ← github.com/adponte-infra/monorepo
+saas/                                 ← github.com/adponte-infra/saas
 ├── .github/workflows/
 │   ├── ci.yml
 │   ├── docker.yml
@@ -135,7 +135,7 @@ saas/                                 ← github.com/adponte-infra/monorepo
 ### SaaS — agregador
 | Repo | Caminho local | Tipo |
 |------|--------------|------|
-| adponte-infra/monorepo | `saas/` | Monorepo agregador |
+| adponte-infra/saas | `saas/` | Monorepo agregador |
 
 ### SaaS — submodules (22)
 | Repo | Caminho dentro de `saas/` | Tipo |
@@ -174,7 +174,7 @@ git clone git@github.com:adponte-infra/site.git
 
 ### SaaS (com submodules)
 ```bash
-git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git saas
+git clone --recurse-submodules git@github.com:adponte-infra/saas.git saas
 ```
 
 ### Workspace local completo
@@ -182,7 +182,7 @@ git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git saas
 mkdir -p ~/dev/adponte
 cd ~/dev/adponte
 git clone git@github.com:adponte-infra/site.git
-git clone --recurse-submodules git@github.com:adponte-infra/monorepo.git saas
+git clone --recurse-submodules git@github.com:adponte-infra/saas.git saas
 ```
 
 ---
