@@ -6,9 +6,9 @@
 	path = services/api-local
 	url = git@github.com:adponte-infra/api-local.git
 	branch = main
-[submodule "services/control-plane"]
-	path = services/control-plane
-	url = git@github.com:adponte-infra/control-plane.git
+[submodule "services/media-workflow"]
+	path = services/media-workflow
+	url = git@github.com:adponte-infra/media-workflow.git
 	branch = main
 [submodule "apps/admin-web"]
 	path = apps/admin-web

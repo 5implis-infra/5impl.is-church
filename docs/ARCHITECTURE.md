@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADRs)
 
 > Registra as decisões arquiteturais relevantes do monorepo AD Ponte.
-> Atualizado em: 2026-04-25 — migração para v2.
+> Atualizado em: 2026-05-07
 
 ---
 
@@ -42,7 +42,7 @@ Estrutura Turborepo com organização por domínio:
 | Diretório | Propósito |
 |-----------|-----------|
 | `apps/` | Aplicações user-facing (admin-web, admin-app, member-app) |
-| `services/` | Serviços com estado próprio (api, api-local, control-plane) |
+| `services/` | Serviços com estado próprio (api, api-local, media-workflow) |
 | `workers/media/` | Workers de processamento de mídia (transcript, ffmpeg, etc.) |
 | `workers/system/` | Workers de sistema (notifications, sync, scheduled-jobs) |
 | `packages/` | Pacotes internos compartilhados (types, db, auth, etc.) |
@@ -89,18 +89,11 @@ push → GitHub Actions (build + push imagem → GHCR) → webhook → Coolify p
 ## ADR-004 — Turborepo Remote Cache: Self-Hosted
 
 **Data:** 2026-04-16
-**Status:** Planejado (ver BACKLOG.md)
+**Status:** Planejado
 
 ### Decisão
 Usar `ducktors/turborepo-remote-cache` na própria VPS Hetzner.
 Evita rebuilds desnecessários entre máquinas locais e CI.
-
-### Configuração (quando provisionado)
-```bash
-TURBO_API=https://turbo-cache.seudominio.com
-TURBO_TOKEN=<token>
-TURBO_TEAM=adponte
-```
 
 ---
 
@@ -110,47 +103,21 @@ TURBO_TEAM=adponte
 **Revisão:** 2026-04-25 — Separação total de `saas` e `site`
 **Status:** Aceito
 
-### Contexto
-`site` e `saas` têm stack, design, propósito, workflow de delivery e cadência de
-deploy completamente diferentes. Compartilham apenas contexto de cliente.
-
 ### Decisão
 `site` é um repositório Git **totalmente independente** (`adponte-infra/site`).
 Não compõe nenhum monorepo, não tem submodules, e não compartilha workspace,
 Turbo, pnpm-workspace ou tsconfig com o `saas`.
 
-Localmente, ficam em pastas irmãs (`adponte/site` e `adponte/saas`) apenas por
-conveniência operacional.
-
-### Stack do site
-- Astro Hybrid (`output: 'hybrid'` + `@astrojs/node` adapter)
-- Páginas SSG por padrão; SSR pontual com `export const prerender = false`
-- Tailwind CSS
-- Directus como CMS
-
-### Deploy
-- Container Node.js (`node:22-alpine`), não Nginx
-- VPS Hetzner via Coolify
-- Directus na mesma VPS — comunicação via rede Docker interna do Coolify
-- Rebuild de conteúdo via webhook Directus → `repository_dispatch` → CI
-
 ---
 
-## ADR-006 — Produto: SaaS Multi-Tenant
+## ADR-006 — Produto: SaaS Multi-Tenant para Igrejas
 
 **Data:** 2026-04-16
 **Status:** Aceito
 
 ### Decisão
-O ecossistema nasce como produto SaaS para múltiplas igrejas.
-Multi-tenancy via `churchId` / `slug` em todos os modelos.
-
-### Stack do produto
-- **Admin Web:** Next.js 15 + Tailwind CSS 4
-- **Admin App:** Expo (mobile/PWA)
-- **Member App:** Expo (mobile/PWA)
-- **API:** Hono + tRPC + Prisma (PostgreSQL)
-- **Auth:** TBD (Better Auth? Clerk?)
+Plataforma SaaS multi-tenant para gestão de igrejas. Multi-tenancy via `churchId` / `slug`
+em todos os modelos de domínio. Habilitação de módulos por `feature flags` + `planos de assinatura`.
 
 ---
 
@@ -171,7 +138,6 @@ O monorepo agregador (`saas/`) referencia todos como submodules.
 - 22 submodules no monorepo agregador `saas`
 - Cada componente pode evoluir, ser deployado e ter CI/CD independente
 - Requer `git submodule update --remote` para sincronizar mudanças
-- `pnpm-workspace.yaml` usa globs para cobrir todos os paths
 
 ---
 
@@ -180,22 +146,40 @@ O monorepo agregador (`saas/`) referencia todos como submodules.
 **Data:** 2026-04-25
 **Status:** Aceito
 
-### Contexto
-`site` e `saas` são produtos do mesmo cliente, mas têm stack, design, propósito,
-workflow de delivery e cadência de deploy completamente diferentes. Não há código
-compartilhado nem ciclo de release coordenado.
-
 ### Decisão
 `site` e `saas` são repositórios Git **completamente independentes**:
 
 - `adponte-infra/site` — repo do site Astro
 - `adponte-infra/saas` — repo do SaaS (com submodules internos)
 
-Não existe um terceiro repo agregador acima dos dois. A pasta local
-`adponte/` é apenas conveniência de workspace, sem versionamento.
+Não existe um terceiro repo agregador acima dos dois.
+
+---
+
+## ADR-009 — Separação de `services/api` e `services/media-workflow`
+
+**Data:** 2026-05-07
+**Status:** Aceito
+
+### Contexto
+O produto possui dois tipos de operação com características sistêmicas distintas:
+- Operações do produto (CRUD, regras de negócio, request/response)
+- Orquestração do workflow de mídia (event-driven, async, longa duração)
+
+### Decisão
+**`services/api`** concentra toda a lógica do produto (todos os módulos: pessoas, eventos,
+financeiro, cursos, pastoral, agendas, notificações, billing, tenants). É uma API
+request/response consumida por apps e workers.
+
+**`services/media-workflow`** é exclusivo para o Módulo Mídia: recebe eventos de chegada
+de mídia do `services/api-local`, mantém a state machine de cada job, dispara e recebe
+callbacks do `infra/n8n`. Opera em modo event-driven e async.
+
+O nome "control-plane" foi descartado por conflitar com a semântica padrão de SaaS
+(gestão de plataforma/tenants), que reside dentro do `services/api`.
 
 ### Consequências
-- Cada produto tem ciclo de vida 100% independente
-- CI/CD, deploys, secrets e ownership separados
-- Configs locais (`.agent/`, `.claude/`, `.opencode/`) podem ser duplicadas em cada repo
-- O nome do repo `monorepo` é legado; semanticamente representa o SaaS
+- `services/api` é o único serviço que apps e outros workers chamam diretamente
+- `services/media-workflow` nunca é chamado diretamente por apps — apenas reage a eventos
+- Billing, planos e tenants vivem como domínio interno do `services/api`
+- O ciclo de vida do `services/media-workflow` é independente do `services/api`

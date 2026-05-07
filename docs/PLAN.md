@@ -86,7 +86,7 @@ saas/                                 ← github.com/adponte-infra/saas
 ├── services/
 │   ├── api/                          ← submodule: adponte-infra/api (Hono + tRPC + Prisma)
 │   ├── api-local/                    ← submodule: adponte-infra/api-local
-│   └── control-plane/                ← submodule: adponte-infra/control-plane
+│   └── media-workflow/               ← submodule: adponte-infra/media-workflow
 │
 ├── workers/
 │   ├── media/
@@ -118,9 +118,8 @@ saas/                                 ← github.com/adponte-infra/saas
 │
 └── docs/
     ├── PLAN.md
-    ├── EXECUTION-ROADMAP.md
-    ├── ARCHITECTURE.md
-    └── ...
+    └── ARCHITECTURE.md
+    └── app.context.md
 ```
 
 ---
@@ -145,7 +144,7 @@ saas/                                 ← github.com/adponte-infra/saas
 | adponte-infra/member-app | `apps/member-app` | App |
 | adponte-infra/api | `services/api` | Service |
 | adponte-infra/api-local | `services/api-local` | Service |
-| adponte-infra/control-plane | `services/control-plane` | Service |
+| adponte-infra/media-workflow | `services/media-workflow` | Service |
 | adponte-infra/transcript | `workers/media/transcript` | Worker |
 | adponte-infra/worker-ffmpeg | `workers/media/ffmpeg` | Worker |
 | adponte-infra/worker-davinci | `workers/media/davinci` | Worker |
@@ -212,7 +211,7 @@ git clone --recurse-submodules git@github.com:adponte-infra/saas.git saas
 | Member App | `apps/member-app/` | Expo (mobile/PWA) | — |
 | API SaaS | `services/api/` | Hono + tRPC + Prisma | VPS/Coolify |
 | API Local | `services/api-local/` | TBD | Mini PC |
-| Control Plane | `services/control-plane/` | Hono + tRPC + Prisma | VPS/Coolify |
+| Media Workflow | `services/media-workflow/` | TBD | VPS/Coolify |
 | Transcrição | `workers/media/transcript/` | Python + faster-whisper | RunPod |
 | Worker FFmpeg | `workers/media/ffmpeg/` | Python + FFmpeg | VPS/Coolify |
 | Worker DaVinci | `workers/media/davinci/` | Python + DaVinci API | VPS dedicado |
