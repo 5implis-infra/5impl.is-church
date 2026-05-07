@@ -1,10 +1,10 @@
 ## 1. Rename do Submodule (pré-requisito manual)
 
-- [ ] 1.1 Renomear repo no GitHub: `adponte-infra/control-plane` → `adponte-infra/media-workflow` (ação manual no GitHub UI) — **BLOCKER: aguardando ação manual**
+- [x] 1.1 Renomear repo no GitHub: `adponte-infra/control-plane` → `adponte-infra/media-workflow` (ação manual no GitHub UI)
 - [x] 1.2 Atualizar `.gitmodules`: substituir path `services/control-plane` por `services/media-workflow` e URL correspondente
-- [ ] 1.3 Executar `git submodule sync` no root do saas — aguarda 1.1
-- [ ] 1.4 Mover diretório: `git mv services/control-plane services/media-workflow` — aguarda 1.1
-- [ ] 1.5 Verificar `git submodule status` — confirmar que `services/media-workflow` está íntegro — aguarda 1.4
+- [x] 1.3 Executar `git submodule sync` no root do saas
+- [x] 1.4 Mover diretório: `git mv services/control-plane services/media-workflow`
+- [x] 1.5 Verificar `git submodule status` — confirmar que `services/media-workflow` está íntegro
 
 ## 2. Atualização da Documentação Arquitetural
 
@@ -97,5 +97,5 @@
 
 - [x] 15.1 Verificar que todos os 22 projetos possuem `README.md` com as 5 seções obrigatórias
 - [x] 15.2 Verificar que todos os 22 projetos possuem `AGENTE.md`
-- [ ] 15.3 Confirmar que `git submodule status` não mostra erros após o rename — aguarda 1.4
-- [ ] 15.4 Commit no saas root: `chore: rename control-plane to media-workflow + initial docs`
+- [x] 15.3 Confirmar que `git submodule status` não mostra erros após o rename
+- [x] 15.4 Commit no saas root: `chore: rename control-plane to media-workflow + initial docs`
