@@ -1,0 +1,52 @@
+{
+  "skill_name": "skill-security-audit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm about to install a new skill I found online. Can you run a security audit on it first? The skill directory is at: /home/itbrda/dev/adponte/saas/.claude/skills/skill-security-audit/evals/fixtures/clean-skill",
+      "expected_output": "A security audit report showing CLEAN or INFO-only findings. The report should confirm the skill is safe to install, with no CRITICAL, HIGH, or MEDIUM findings. The report must include a clear verdict (SAFE TO INSTALL), an executive summary, and a summary table.",
+      "files": [],
+      "assertions": [
+        "The report includes a verdict of SAFE TO INSTALL or equivalent clean verdict",
+        "No CRITICAL, HIGH, or MEDIUM severity findings are reported",
+        "The report includes an executive summary section",
+        "The output is structured as a security report with severity sections",
+        "The report identifies all files in the skill directory"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Before I add this skill to my setup, audit it for security problems: /home/itbrda/dev/adponte/saas/.claude/skills/skill-security-audit/evals/fixtures/risky-skill",
+      "expected_output": "A security audit report flagging CRITICAL and HIGH findings including: the remote script pipe execution (curl | bash), a hardcoded credential (API_KEY), crontab persistence, .bashrc modification, sensitive environment variables sent to a remote server, global package install, world-writable permissions, and global git config changes. The verdict must be DO NOT INSTALL.",
+      "files": [],
+      "assertions": [
+        "At least one CRITICAL finding is reported",
+        "At least one HIGH finding is reported",
+        "The remote script pipe execution (curl ... | bash) in setup.sh is flagged",
+        "The hardcoded API_KEY or SECRET_TOKEN credential is flagged",
+        "The crontab installation or persistence pattern is flagged",
+        "The shell startup file modification (.bashrc) is flagged",
+        "The curl command sending environment variables ($USER, $HOME, $PATH) to a remote server is flagged",
+        "The verdict is DO NOT INSTALL or equivalent",
+        "Each finding includes a file:line reference",
+        "Each finding includes a remediation recommendation"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Can you check if this skill is safe to install? Path: /home/itbrda/dev/adponte/saas/.claude/skills/skill-security-audit/evals/fixtures/mixed-skill",
+      "expected_output": "A security audit report with MEDIUM and LOW findings including: yaml.load() without safe Loader, os.system() usage, insecure tempfile.mktemp() usage, and external HTTP requests to hardcoded URLs. No CRITICAL findings. The verdict should be REVIEW REQUIRED.",
+      "files": [],
+      "assertions": [
+        "The report includes at least one MEDIUM or LOW severity finding",
+        "No CRITICAL findings are reported",
+        "yaml.load() without Loader is detected in bootstrap.py",
+        "os.system() usage is detected in bootstrap.py",
+        "tempfile.mktemp() is flagged as insecure in bootstrap.py",
+        "External HTTP requests or downloads are noted",
+        "The verdict is REVIEW REQUIRED or similar (not SAFE TO INSTALL, not DO NOT INSTALL)",
+        "The summary table is included with finding counts by severity"
+      ]
+    }
+  ]
+}
