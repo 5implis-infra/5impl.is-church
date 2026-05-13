@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /home/itbrda/dev/adponte/saas submodule foreach --recursive 'echo \"=== $displaypath ===\" && git status --short')"
+    ]
+  }
+}
