@@ -81,18 +81,18 @@ This roadmap recovers the documentation refactor plan discussed during OpenSpec 
 
 ### 5. `standardize-agents-md-filename`
 
-**Purpose:** Finish the migration from `AGENTE.md` wording to `AGENTS.md` everywhere.
+**Purpose:** Finish the migration from `AGENTS.md` wording to `AGENTS.md` everywhere.
 
 **Scope:**
 - Update root `AGENTS.md` title.
 - Update all subproject `AGENTS.md` titles.
-- Fix root `README.md` link from `AGENTE.md` to `AGENTS.md`.
-- Fix all textual references to `AGENTE.md` in docs and OpenSpec specs.
-- Ensure no physical `AGENTE.md` file exists.
+- Fix root `README.md` link from `AGENTS.md` to `AGENTS.md`.
+- Fix all textual references to `AGENTS.md` in docs and OpenSpec specs.
+- Ensure no physical `AGENTS.md` file exists.
 
 **Depends on:** `define-documentation-source-of-truth`.
 
-**Done when:** repository search for `AGENTE.md` returns no active references.
+**Done when:** repository search for `AGENTS.md` returns no active references.
 
 ### 6. `refactor-root-readme-and-agents`
 
@@ -106,7 +106,7 @@ This roadmap recovers the documentation refactor plan discussed during OpenSpec 
 
 **Depends on:** `create-canonical-docs`, `standardize-agents-md-filename`.
 
-**Done when:** root `README.md` and root `AGENTS.md` have distinct purposes and no stale `AGENTE.md` references.
+**Done when:** root `README.md` and root `AGENTS.md` have distinct purposes and no stale `AGENTS.md` references.
 
 ### 7. `standardize-subproject-readmes`
 
@@ -156,7 +156,7 @@ This roadmap recovers the documentation refactor plan discussed during OpenSpec 
 These may become future changes, but were not part of the recovered core 9-change roadmap.
 
 - `openspec-capability-specs-migration`: create formal OpenSpec specs for product capabilities beyond documentation.
-- `documentation-lint-checks`: add CI or scripts to detect stale `AGENTE.md`, broken doc links, missing AGENTS sections, or active docs linking to `docs/old/` as authoritative.
+- `documentation-lint-checks`: add CI or scripts to detect stale `AGENTS.md`, broken doc links, missing AGENTS sections, or active docs linking to `docs/old/` as authoritative.
 - `subproject-operations-docs`: add local `OPERATIONS.md` only to subprojects with complex independent operations.
 
 ## Suggested Execution Rule
