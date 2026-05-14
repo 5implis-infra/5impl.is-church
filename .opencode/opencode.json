@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+	"model": "opencode/big-pickle",
+	"small_model": "opencode/gpt-5-nano",
+  "agent": {
+    "build": {
+      "disable": true,
+    },
+    "plan": {
+      "disable": true
+    },
+"🔨 build": {
+      "model": "opencode-go/minimax-m2.7",
+      "temperature": 0.2,
+      "reasoningEffort": "medium",
+      "mode": "primary",
+      "description": "Build and implement code features",
+      "color": "#9333EA",
+      "permission": { "edit": "allow" }
+    },
+    "🏗️ architecture": {
+      "model": "opencode-go/minimax-m2.7",
+      "temperature": 0.1,
+      "reasoningEffort": "high",
+      "mode": "primary",
+      "description": "Design architecture, ADRs, diagrams and structural decisions",
+      "color": "#10B981",
+      "permission": { "edit": "ask" }
+    },
+    "✨ general": {
+      "model": "openai/gpt-5.5",
+      "temperature": 0.3,
+      "reasoningEffort": "medium",
+      "mode": "primary",
+      "description": "General purpose assistant",
+      "color": "#3B82F6",
+      "permission": { "edit": "allow" }
+    },
+    "🧭 explore": {
+      "model": "google/gemini-3.1-pro-preview",
+      "temperature": 0.2,
+      "reasoningEffort": "medium",
+      "mode": "primary",
+      "description": "Explore and research codebase",
+      "color": "#F59E0B",
+      "permission": { "edit": "deny" }
+    },
+    "🔍 review": {
+      "model": "opencode-go/minimax-m2.7",
+      "temperature": 0.15,
+      "reasoningEffort": "high",
+      "mode": "primary",
+      "description": "Review code for bugs and quality issues",
+      "color": "#EF4444",
+      "permission": { "edit": "deny" }
+    },
+    "🧪 test": {
+      "model": "opencode-go/minimax-m2.7",
+      "temperature": 0.2,
+      "reasoningEffort": "medium",
+      "mode": "primary",
+      "description": "Write and run unit tests",
+      "color": "#14B8A6",
+      "permission": { "edit": "allow" }
+    },
+    "📖 docs": {
+      "model": "openai/gpt-5.5",
+      "temperature": 0.25,
+      "reasoningEffort": "medium",
+      "mode": "primary",
+      "description": "Generate and maintain documentation",
+      "color": "#8B5CF6",
+      "permission": { "edit": "allow" }
+    },
+    "♻️ refactor": {
+      "model": "opencode-go/kimi-k2.6",
+      "temperature": 0.15,
+      "reasoningEffort": "high",
+      "mode": "primary",
+      "description": "Refactor and improve existing code",
+      "color": "#F97316",
+      "permission": { "edit": "allow" }
+    }
+  },
+  "mcp": {
+    "mgrep": {
+      "type": "local",
+      "command": [
+        "mgrep",
+        "mcp"
+      ],
+      "enabled": true
+    },
+		"context7": {
+			"type": "remote",
+			"url": "https://mcp.context7.com/mcp",
+			"enabled": true
+		},
+		"exa": {
+			"type": "remote",
+			"url": "https://mcp.exa.ai/mcp",
+			"enabled": true
+		},
+		"gh_grep": {
+			"type": "remote",
+			"url": "https://mcp.grep.app",
+			"enabled": true
+		}
+  },
+  "plugin": [
+    "opencode-antigravity-auth@latest",
+    "opencode-claude-auth@latest",
+    "@franlol/opencode-md-table-formatter@latest",
+    "@tarquinen/opencode-dcp@3.1.3"
+  ],
+  "experimental": {
+    "continue_loop_on_deny": false,
+    "mcp_timeout": 10000,
+    "openTelemetry": false
+  }
+}
