@@ -25,7 +25,7 @@ rules:
   adr:
     - Must use architecture-decision-records skill
     - Must use c4-architecture skill
-  spec:
+  specs:
     - Must use gherkin-authoring skill
   tasks:
     - Must use openspec-apply-change skill
