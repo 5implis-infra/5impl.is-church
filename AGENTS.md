@@ -143,31 +143,7 @@ Diagrama completo: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ## Stack por Camada
 
-| Camada | Tecnologia | Onde se aplica |
-|---|---|---|
-| Linguagem (apps/services) | TypeScript 5.x, ESM (`"type": "module"`) | Todos os apps, services e packages |
-| Linguagem (workers mídia) | Python 3.10+ | `workers/media/*` |
-| Linguagem (workers sistema) | TBD (TypeScript ou Python) | `workers/system/*` |
-| Runtime JS | Node.js (LTS) | services, packages |
-| Framework web (admin) | Next.js 15 + React 19 | `apps/admin-web` |
-| Framework mobile | Expo (nativo) | `apps/admin-app`, `apps/member-app` |
-| API framework | Hono + tRPC v11 | `services/api`, `services/media-workflow` |
-| ORM | Prisma v6 | `services/api`, `packages/db` |
-| Banco de dados | PostgreSQL | Produção VPS |
-| Estilização | Tailwind CSS v4 | `apps/admin-web`, `packages/ui` |
-| Validação | Zod v3 | Todos os serviços TS |
-| Orquestração workflows | n8n (self-hosted) | `infra/n8n` |
-| Storage de mídia | Cloudflare R2 (S3-compatible) | workers de mídia |
-| Package manager | pnpm + pnpm-workspace | Monorepo root |
-| Build orchestration | Turborepo | Monorepo root |
-| Containers | Docker + docker-compose | Todos os componentes deployáveis |
-| Registry | GHCR (GitHub Container Registry) | Todas as imagens Docker |
-| CI/CD | GitHub Actions → GHCR → Coolify webhook | Todos os submodules |
-| CI local | nektos/act (`.actrc` + `.secrets.act`) | Monorepo root |
-| Hosting | Hetzner VPS via Coolify | Todos os serviços VPS |
-| Hosting GPU | RunPod (serverless) | `workers/media/transcript`, `workers/media/ffmpeg` |
-| Turbo cache | ducktors/turborepo-remote-cache (self-hosted) | CI e builds locais |
-| Linter Python | ruff + mypy | `workers/media/*` |
+Stack tecnológica detalhada: ver [docs/ARCHITECTURE.md — Stack por Camada](docs/ARCHITECTURE.md#stack-por-camada).
 
 ---
 

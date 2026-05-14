@@ -1,8 +1,8 @@
 # AD Ponte SaaS
 
-SaaS multi-tenant para gestão de igrejas — administração, comunicação e produção de mídia para igrejas com múltiplas filiais.
+Plataforma de gestão para igrejas com múltiplas filiais — admin, comunicação e mídia.
 
-> Documentação completa: [AGENTS.md](AGENTS.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+> Documentação completa: [AGENTS.md](AGENTS.md) · [docs/PRODUCT.md](docs/PRODUCT.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
