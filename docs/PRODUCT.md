@@ -59,3 +59,11 @@ O produto é acessado em três superfícies, todas consumindo exclusivamente `se
 Multi-tenancy via `churchId`/`slug` em todos os modelos de domínio. Schema único + Row-Level Security no PostgreSQL para o estágio atual.
 
 Feature flags + planos de assinatura controlam quais módulos estão disponíveis por tenant.
+
+---
+
+## See also
+
+- [Stack, deployment e pipeline de mídia](docs/ARCHITECTURE.md)
+- [Princípios visuais e padrões de UX](docs/DESIGN.md)
+- [Contexto de IA e comandos essenciais](AGENTS.md)

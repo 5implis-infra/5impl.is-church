@@ -135,4 +135,11 @@ Quando uma lista/página está vazia, mostrar:
 ### Data fetching
 - Server components para leitura inicial
 - Cliente polling ou SWR para dados que mudam com frequência
-- Otimistic updates para operações que用户的反馈
+- Otimistic updates para operações que dependem de resposta do servidor
+
+---
+
+## See also
+
+- [Implementação do design system](packages/ui)
+- [Visão macro do produto](docs/PRODUCT.md) — contexto de domínio para decisões de design

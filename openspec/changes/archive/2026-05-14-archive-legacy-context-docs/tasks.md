@@ -35,4 +35,4 @@
 ## 5. Validate and commit
 
 - [x] 5.1 Run `openspec validate archive-legacy-context-docs --type change`
-- [ ] 5.2 Commit with message referencing change name
+- [x] 5.2 Commit with message referencing change name

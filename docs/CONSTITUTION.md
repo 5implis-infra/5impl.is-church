@@ -63,3 +63,10 @@ Não reescrevemos do zero. Evolímos incrementalmente. Cada decisão é localmen
 - Não somos um sistema de gestão deProjects genérico
 - Não somos uma plataforma de e-commerce
 - Não monetizamos dados de igrejas ou membros
+
+---
+
+## See also
+
+- [Visão macro do produto e módulos](docs/PRODUCT.md)
+- [Princípios visuais e padrões de UX](docs/DESIGN.md)

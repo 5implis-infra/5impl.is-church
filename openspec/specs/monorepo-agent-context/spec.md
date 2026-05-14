@@ -94,3 +94,12 @@ A estrutura e estilo do `AGENTS.md` root SHALL ser a referência para os arquivo
 - **WHEN** se compara um `AGENTS.md` de submodule com o root
 - **THEN** as seções seguem o mesmo padrão de nomenclatura
 - **THEN** o tom e nível de detalhe são compatíveis
+
+### Requirement: AGENTS.md contém seção Specs relacionados
+O `AGENTS.md` root SHALL incluir uma seção "Specs relacionados" com links para os arquivos `openspec/specs/<capability>/spec.md` relevantes para as capabilities que implementa ou com as quais se relaciona.
+
+#### Scenario: Spec links present in AGENTS.md
+- **WHEN** se lê o `AGENTS.md`
+- **THEN** existe uma seção "Specs relacionados"
+- **THEN** contém links para os arquivos `openspec/specs/<capability>/spec.md` relevantes
+- **AND** não duplica conteúdo de requirement que vive nas specs

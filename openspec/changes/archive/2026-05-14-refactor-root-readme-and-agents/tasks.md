@@ -10,5 +10,5 @@
 
 ## 3. Validate and commit
 
-- [ ] 3.1 Run `openspec validate refactor-root-readme-and-agents --type change`
-- [ ] 3.2 Commit changes
+- [x] 3.1 Run `openspec validate refactor-root-readme-and-agents --type change`
+- [x] 3.2 Commit changes
