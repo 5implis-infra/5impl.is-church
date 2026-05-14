@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git submodule foreach --recursive 'echo \"=== $displaypath ===\" && git status --short')",
       "Bash(bash .agents/scripts/on-skill-install.sh)",
-      "Bash(bash .agents/scripts/scan-skills.sh)"
+      "Bash(bash .agents/scripts/scan-skills.sh)",
+      "WebFetch(domain:github.com)"
     ]
   },
   "hooks": {

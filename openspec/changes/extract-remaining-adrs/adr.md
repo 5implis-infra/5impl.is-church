@@ -1,1 +1,0 @@
-Extracted 6 new ADRs (013–018) from the TBDs section of `docs/ARCHITECTURE.md`, capturing previously informal architectural decisions into formal ADR format.
