@@ -4,7 +4,16 @@
       "Bash(git submodule foreach --recursive 'echo \"=== $displaypath ===\" && git status --short')",
       "Bash(bash .agents/scripts/on-skill-install.sh)",
       "Bash(bash .agents/scripts/scan-skills.sh)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('instruction',''\\)[:800]\\)\")",
+      "Bash(git -C /home/itbrda/dev/adponte/saas log --oneline -5)",
+      "Bash(openspec validate *)",
+      "Bash(openspec schema *)",
+      "Bash(openspec schemas *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('instruction',''\\)[:600]\\)\")",
+      "Bash(git -C /home/itbrda/dev/adponte/saas log --oneline -3)",
+      "Bash(git -C /home/itbrda/dev/adponte/saas diff --stat HEAD~1 HEAD)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); incomplete=[a['id'] for a in d['artifacts'] if a['status']!='done']; print\\('Complete:', d['isComplete']\\); print\\('Incomplete:', incomplete\\)\")"
     ]
   },
   "hooks": {

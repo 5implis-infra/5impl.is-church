@@ -4,14 +4,12 @@ context: |
   Language: Portuguese (pt-BR)
   All artifacts must be written in English.
 
-  MUST use brainstorming mode before creating proposal artifacts.
-  Explore user intent, constraints, and alternatives through focused questions,
-  then summarize the agreed direction before writing.
-
   For propose/apply/verify/archive workflows, use the local `openspec-git-discipline` skill
   to enforce proposal commits.
 
 rules:
+  brainstorm:
+    - Must use grill-me skill
   proposal:
     - Must use grill-me skill
   design:
@@ -29,4 +27,5 @@ rules:
     - Must use gherkin-authoring skill
   tasks:
     - Must use openspec-apply-change skill
+  verify:
     - Must use openspec-verify-change skill

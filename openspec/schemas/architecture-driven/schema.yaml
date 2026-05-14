@@ -1,0 +1,109 @@
+name: architecture-driven
+version: 1
+description: Architecture-driven OpenSpec workflow for architectural documentation sessions - scope -> architecture-doc -> adr -> tasks -> [apply]. Produces arc42-structured documents, ADRs, and doc-update checklists with no code output.
+
+artifacts:
+  - id: scope
+    generates: scope.md
+    description: Determines change type and resolves target doc path before any writing begins
+    template: scope.md
+    instruction: |
+      Ask the user three routing questions to determine WHERE to write and WHAT sections to use:
+
+      1. **Change Type**: Which type best describes this architectural work?
+         - Architecture Concern (auth strategy, multi-tenancy isolation, API design)
+         - Bounded Context (billing domain, notifications domain)
+         - Subproject-local (api request lifecycle, worker-ffmpeg components)
+
+      2. **Target Path**: What is the specific name/identifier for this concern, context, or subproject?
+
+      3. **Affected Subprojects or Contexts**: Which subprojects does this touch? (for cross-cutting concerns, list all; for bounded context, list integrating subprojects; for subproject-local, list the one subproject)
+
+      Resolve the target path using this routing table:
+
+      | Type | Target Path |
+      |------|-------------|
+      | Architecture Concern | docs/concerns/<name>/ARCHITECTURE.md |
+      | Bounded Context | docs/contexts/<name>/domain-model.md |
+      | Subproject-local | <subproject>/docs/ARCHITECTURE.md |
+
+      Write the resolved path in scope.md. The path resolution done here is the canonical reference for all subsequent artifacts.
+    requires: []
+
+  - id: architecture-doc
+    generates: architecture-doc.md
+    description: arc42-structured architecture document written to the resolved target path
+    template: architecture-doc.md
+    instruction: |
+      Read scope.md to determine the change type and resolved target path.
+
+      Select the arc42 sections for the type:
+
+      | Type | Sections |
+      |------|----------|
+      | Architecture Concern | §Scope, §Current State, §Decision, §Consequences, §Per-subproject implications |
+      | Bounded Context | §Ubiquitous Language, §Aggregates, §Context Map, §Integration points |
+      | Subproject-local | §Context, §Decisions, §Components affected |
+
+      Write the architecture document to:
+      - `architecture-doc.md` (change dir draft)
+      - The resolved target path from scope.md (the canonical location)
+
+      Mark sections as "include if relevant" — authors can omit empty sections without breaking the schema.
+    requires:
+      - scope
+
+  - id: adr
+    generates: "../../../docs/adrs/*.md"
+    description: Architecture Decision Records distilled from architecture-doc
+    template: adr.md
+    instruction: |
+      **Skip rule**: If architecture-doc.md contains only `Skipped:`, write `Skipped: no architectural decisions to record` and stop here.
+
+      Read architecture-doc.md. Read existing ADRs in the target directory (global `docs/adrs/` or subproject-local `<subproject>/docs/adrs/`).
+
+      Extract decisions that meet ALL of:
+      - Establish a long-term architectural commitment (pattern, boundary, contract)
+      - Will affect future changes beyond this one
+      - Not already captured by a currently-in-force ADR
+
+      Write each decision to the appropriate path per scope.md:
+      - Global (Architecture Concern or cross-subproject Bounded Context): `docs/adrs/<nnn>-<name>.md`
+      - Local (Subproject-local or bounded-context entirely within one subproject): `<subproject>/docs/adrs/<nnn>-<name>.md`
+
+      Sequence number is monotonic per directory (independent of the other directory).
+
+      If no decisions meet the bar, write `Skipped: no architectural decisions to record`.
+    requires:
+      - architecture-doc
+
+  - id: tasks
+    generates: tasks.md
+    description: Doc-update checklist for updating related documentation
+    template: tasks.md
+    instruction: |
+      Create a doc-update checklist that addresses:
+
+      - C4 diagram updates needed (if any diagrams reference the affected area)
+      - Cross-links in other architecture docs that should reference this new/updated document
+      - Subproject files that reference this concern/context and should be updated
+      - Validation steps to confirm the documentation is consistent
+
+      Format each item as `- [ ] Task description` for tracking.
+
+      Reference architecture-doc.md and scope.md for the affected paths and change type.
+    requires:
+      - adr
+
+apply:
+  requires:
+    - tasks
+  tracks: tasks.md
+  instruction: |
+    Read context files (scope, architecture-doc, adr, tasks), then execute the doc-update checklist in tasks.md.
+
+    Write files to the target paths specified in tasks.md. This is doc-only — no worktree, no Superpowers skills, no subagent-driven-development.
+
+    Mark each task complete in tasks.md as you finish it.
+
+    Pause if you encounter blockers or need clarification.
