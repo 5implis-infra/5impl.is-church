@@ -3,7 +3,41 @@ version: 1
 description: Architecture-driven OpenSpec workflow for architectural documentation sessions - scope -> architecture-doc -> adr -> tasks -> [apply]. Produces arc42-structured documents, ADRs, and doc-update checklists with no code output.
 
 artifacts:
-  - id: scope
+  - id: brainstorm
+    generates: brainstorm.md
+    description: Pre-proposal exploration to align intent before writing artifacts
+    template: brainstorm.md
+    instruction: |
+      PRECHECK — required skill availability:
+      Before invoking, confirm `brainstorming` appears in
+      your available skills list. If missing, STOP and inform the user
+      that the Superpowers plugin (or brainstorming skill) must be installed (or that they can
+      explicitly opt to write brainstorm.md manually using the template
+      below). Do NOT silently fall back.
+
+      Use the Skill tool to invoke **brainstorming**.
+
+      IMPORTANT output redirection:
+      - Do NOT write to `docs/superpowers/specs/`. Instead, write the
+        brainstorming design output directly to this change's `brainstorm.md`.
+      - If brainstorming produces a design document, also write it to
+        this change's `design.md` (this will pre-fill the design artifact).
+
+      After brainstorming completes, summarize the agreed design in
+      brainstorm.md using the template structure.
+
+      The brainstorming skill will:
+      1. Explore project context
+      2. Ask clarifying questions (one at a time)
+      3. Propose 2-3 approaches with trade-offs
+      4. Present design sections for approval
+      5. Output the validated design
+
+      **When to skip**: If scope is already clear and no grilling needed, write
+      `Skipped: <reason>` as the file content. This satisfies the requires dependency
+      and propagates to proposal.
+    requires: []
+  - id: proposal
     generates: scope.md
     description: Determines change type and resolves target doc path before any writing begins
     template: scope.md
@@ -28,7 +62,8 @@ artifacts:
       | Subproject-local | <subproject>/docs/ARCHITECTURE.md |
 
       Write the resolved path in scope.md. The path resolution done here is the canonical reference for all subsequent artifacts.
-    requires: []
+    requires:
+      - brainstorm
 
   - id: architecture-doc
     generates: architecture-doc.md

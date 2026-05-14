@@ -9,7 +9,7 @@ context: |
 
 rules:
   brainstorm:
-    - Must use grill-me skill
+    - Must use brainstorming skill
   proposal:
     - Must use grill-me skill
   design:
