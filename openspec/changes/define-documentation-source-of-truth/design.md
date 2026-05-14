@@ -1,160 +1,173 @@
 ## Context
 
-The AD Ponte SaaS monorepo contains 22 subprojects across apps, services, workers, and packages. Documentation currently suffers from:
+Monorepo com 22 subprojetos. Docs fragmentation:
 
-- **Naming inconsistency**: `AGENTS.md` files titled "AGENTE.md"
-- **No clear source-of-truth**: no defined hierarchy for which doc is authoritative for what
-- **Conflicting content**: `docs/context/product-context.md` and `docs/context/flow-midia.md` contradict current architecture on n8n ownership and `control-plane` terminology
-- **Duplication**: subproject READMEs and AGENTS files repeat global architecture content instead of referencing canonical sources
-- **Stale artifacts**: `docs/context/` files labeled as drafts from 2026-04
-- **No ADR separation**: 9 ADRs inline in `docs/ARCHITECTURE.md` with no migration path to `docs/adrs/`
-
-All 9 ADRs in `docs/ARCHITECTURE.md` are **globally significant** (git submodules, directory structure, CI/CD, product decision, API/media-workflow split). The "global vs local" filter applies to future ADRs, not these — all 9 should move to `docs/adrs/` with the global ones referenced in `ARCHITECTURE.md`.
+- `AGENTS.md` vs `AGENTE.md` — filename inconsistency
+- Sem fonte de verdade: sem hierarchy entre docs
+- `docs/context/` stale vs actual architecture
+- Subproject docs duplicam conteúdo global ao invés de referenciar
+- 9 ADRs inline em `ARCHITECTURE.md` — sem path pra `docs/adrs/`
 
 ## Goals / Non-Goals
 
 **Goals:**
-
-- Establish a clear, enforceable documentation hierarchy where each document has exactly one purpose
-- Eliminate naming inconsistencies (`AGENTE.md` → `AGENTS.md` everywhere)
-- Remove stale conflicting content from active documentation
-- Define a sustainable model where docs are authoritative, non-redundant, and point to each other appropriately
-- Enable OpenSpec specs as canonical requirements that AGENTS.md files reference, not repeat
+- Hierarquia onde cada doc = 1 propósito
+- Eliminar `AGENTE.md` → `AGENTS.md` everywhere
+- Arquivar `docs/context/` → `docs/old/`
+- Specs OpenSpec como fonte de requisitos; AGENTS.md aponta, não repete
 
 **Non-Goals:**
+- Não reescrever tudo do zero — só realinhar ownership
+- Templates flexíveis com mínimo bar
+- Design system implementation em `packages/ui`, não em `docs/DESIGN.md`
+- `docs/PRODUCT.md` escrito do zero, não derivado de archived content
 
-- Not rewriting all documentation content from scratch — only restructuring ownership
-- Not enforcing overly rigid templates — loose structure with minimum bars where appropriate
-- Not creating a design system implementation in `docs/DESIGN.md` — that lives in `packages/ui`
-- Not moving `docs/context/*` content into new docs — archive as-is, write new docs from product understanding
+## C4 Architecture View
+
+### Level 1 — System Context
+
+```mermaid
+C4Context
+  title System Context — AD Ponte SaaS Documentation
+
+  Person(dev, "Developer/AI Agent", "Reads docs to understand and work in monorepo")
+  Person(new_member, "New Contributor", "Onboarding: clone, understand structure")
+
+  System(saas_monorepo, "AD Ponte SaaS Monorepo", "22 subprojects: apps, services, workers, packages, infra")
+
+  System_Ext(github, "GitHub", "Hosts 22 submodule repos + aggregator")
+  System_Ext(coolify, "Coolify", "Deploys services to Hetzner VPS")
+  System_Ext(runpod, "RunPod", "GPU workers for media pipeline")
+
+  Rel(dev, saas_monorepo, "Reads docs, commits code")
+  Rel(new_member, saas_monorepo, "Clones, follows README")
+  Rel(saas_monorepo, github, "push/pull")
+  Rel(saas_monorepo, coolify, "webhook deploy")
+  Rel(saas_monorepo, runpod, "job execution")
+```
+
+### Level 2 — Documentation Containers
+
+```mermaid
+C4Container
+  title Container Diagram — Documentation Architecture
+
+  Person(dev, "Developer/AI Agent")
+
+  System_Boundary(docs, "docs/") {
+    Container(constitution, "CONSTITUTION.md", "Identity, values, principles")
+    Container(product, "PRODUCT.md", "Products, modules, domain concepts")
+    Container(architecture, "ARCHITECTURE.md", "Technical overview + ADR refs")
+    Container(design, "DESIGN.md", "Visual/UX constitution")
+    Container(adrs, "docs/adrs/", "Immutable ADR files")
+    Container(old, "docs/old/", "Archived stale docs")
+  }
+
+  System_Boundary(root, "root/") {
+    Container(readme, "README.md", "Human entry: quickstart, links")
+    Container(agents, "AGENTS.md", "AI context: boundaries, integrations, commands")
+  }
+
+  System_Boundary(openspec, "openspec/specs/") {
+    Container(specs, "capability specs", "Canonical requirements")
+  }
+
+  Rel(dev, readme, "Human quickstart")
+  Rel(dev, agents, "AI context")
+  Rel(dev, constitution, "Product identity")
+  Rel(dev, product, "What we build")
+  Rel(dev, architecture, "Technical structure")
+  Rel(dev, design, "Visual principles")
+  Rel(dev, adrs, "Architectural decisions")
+  Rel(agents, specs, "Points to requirements")
+```
+
+**Documentation ownership map:**
+
+| Doc | Authority For | Owned By |
+|-----|-------------|----------|
+| `CONSTITUTION.md` | Identity, values, principles | Product/Leadership |
+| `PRODUCT.md` | Products, modules, domain | Product |
+| `ARCHITECTURE.md` | Tech architecture + global ADR refs | Architect |
+| `DESIGN.md` | Visual/UX intent (implementation in `packages/ui`) | Designer/Architect |
+| `docs/adrs/*.md` | Immutable architectural decisions | Architect |
+| `docs/old/*` | Historical reference only | None (frozen) |
+| `AGENTS.md` | Component boundaries + integrations + minimal commands | Component owner |
+| `README.md` | Human entry point + ops | Component owner |
+| `openspec/specs/*.md` | Capability requirements | Feature owner |
 
 ## Decisions
 
-### Decision 1: Document Hierarchy and Ownership
+### D1: Document Hierarchy and Ownership
 
-Each document has a single, unambiguous purpose:
+No doc pode ser autoritativo para conteúdo que vive em outro lugar. Docs apontam entre si, não duplicam.
 
-| File/Dir | Purpose | Is Source of Truth For |
-|---|---|---|
-| `docs/CONSTITUTION.md` | Identity, values, principles, why we exist | Product identity and non-negotiable principles |
-| `docs/PRODUCT.md` | What we build: surfaces, modules, features, domain concepts | Product functionality at macro level |
-| `docs/ARCHITECTURE.md` | Technical architecture, system diagram, stack, deployment, global ADR references | Technical structure — but ADRs themselves live in `docs/adrs/` |
-| `docs/DESIGN.md` | Visual/UX constitution: principles, token semantics, composition patterns, cross-cutting UX rules | Design intent — implementation in `packages/ui` |
-| `docs/adrs/*.md` | Immutable architectural decisions, one per file | Any architectural decision that warrants a record |
-| `docs/old/` | Archived legacy docs | Historical reference only — never authoritative |
-| `AGENTS.md` | AI/developer context: purpose, boundaries, integration points, minimal quick commands | How to understand and work with this component |
-| `README.md` | Human entry point: what this thing is, how to run it, links to AGENTS | Getting started for humans |
-| `openspec/specs/*.md` | Capability requirements and behavior | What each feature must do |
+**Conflict rule:** `docs/old/` conflicts resolvidos a favor de docs ativos.
 
-**Rule:** No document may claim to be authoritative for content that lives elsewhere. Docs point to each other, they don't duplicate.
+### D2: `docs/context/*` → `docs/old/`
 
-### Decision 2: `docs/context/*` → `docs/old/`
+`product-context.md` + `flow-midia.md` → `docs/old/`. Marcados como archived. Novos docs (`PRODUCT.md`, etc.) escritos do zero.
 
-- `docs/context/product-context.md` → `docs/old/product-context.md`
-- `docs/context/flow-midia.md` → `docs/old/flow-midia.md`
-- Both marked as archived/stale in their file headers
-- On any conflict with new docs, **new docs take precedence**
-- New `docs/PRODUCT.md` written fresh, informed by (not derived from) the archived content
+### D3: ADR Migration
 
-### Decision 3: ADR Migration
+9 ADRs inline → `docs/adrs/001-git-submodules.md` ... `009-api-media-workflow-split.md`. `ARCHITECTURE.md` vira index — só referencia ADRs globais (001, 002, 003, 006, 007, 009).
 
-- Create `docs/adrs/` directory
-- Move ADR-001 through ADR-009 (all currently inline in `ARCHITECTURE.md`) to separate files: `docs/adrs/001-git-submodules.md` through `docs/adrs/009-api-media-workflow-split.md`
-- Each ADR file: title, date, status, context, decision, consequences (self-contained)
-- `docs/ARCHITECTURE.md` becomes an **index/summary** — it references only the ADRs that matter for understanding global architecture (ADR-001, 002, 003, 006, 007, 009) with links to `docs/adrs/`
-- Non-global ADRs (e.g., ADR-004 Turborepo cache, ADR-005 Site separation) also move to `docs/adrs/` but are **not referenced** from `ARCHITECTURE.md` — they're available but not part of the architecture overview
+### D4: `AGENTS.md` Canonical Filename
 
-### Decision 4: `AGENTS.md` Canonical Filename
+Todos os agent-context files = `AGENTS.md`. Títulos atualizados. Links consertados. OpenSpec specs atualizadas.
 
-- All agent-context files standardized as `AGENTS.md` (not `AGENTE.md`)
-- Update every file's `# AGENTE.md` title to `# AGENTS.md`
-- Fix every link pointing to `AGENTE.md`
-- Update `openspec/specs/monorepo-agent-context/spec.md` to reflect `AGENTS.md` as the required filename
+### D5: `openspec/specs/` → Canonical Requirements
 
-### Decision 5: Root `README.md` vs `AGENTS.md`
+Cada subproject AGENTS.md inclui **"Specs relacionados"** com links para specs relevantes. AGENTS.md = "o que este componente faz e como se relaciona". Specs = "o que o feature deve fazer".
 
-- `README.md` = human entry point: what is this repo, how to clone/setup, key links (to `AGENTS.md`, `docs/`, `openspec/specs/`)
-- `AGENTS.md` = AI context: architecture summary, domain concepts, module list, ownership map, TBDs, **minimal quick commands section**
-- Keep them clearly separated — README never tries to be comprehensive, AGENTS never duplicates README's quickstart
+### D6: Subproject AGENTS.md — Loose Structure
 
-### Decision 6: Subproject `AGENTS.md` — Loose Structure
+Mínimo obrigatório: **Propósito**, **O que NÃO faz**, **Pontos de integração**. Além disso, free-form.
 
-Minimum required sections:
+### D7: `docs/DESIGN.md` — Strategy, Not Implementation
 
-1. **Propósito** — what this component does
-2. **O que NÃO faz** — clear non-responsibilities (critical for boundaries)
-3. **Pontos de integração** — what it talks to (services, packages, external systems)
+Princípios visuais + semântica de tokens + padrões de composição + regras UX transversais. **Não** inclui código, API de componentes, ou valores de tokens — vivem em `packages/ui`.
 
-Beyond these three, free-form. Each subproject AGENTS may include: local commands, environment variables, specific patterns, caveats. Template is a minimum bar, not a cage.
+### D8: `docs/OPERATIONS.md` — Only Where Needed
 
-Each subproject `AGENTS.md` should include a **"Specs relacionados"** section linking to `openspec/specs/` for relevant capabilities.
-
-### Decision 7: Subproject `README.md` — Light Context + Ops
-
-- 2-3 sentence description of what this project is
-- Setup, run, test commands
-- Links to: `AGENTS.md` (deeper context), `openspec/specs/` (requirements), relevant `docs/` files
-
-### Decision 8: `docs/DESIGN.md` — Strategy, Not Implementation
-
-`docs/DESIGN.md` at root covers:
-
-- **Visual principles**: brand personality, color philosophy, typography voice
-- **Global token semantics**: what design tokens mean conceptually (not hex values)
-- **Composition patterns**: how components combine, spacing philosophy
-- **Cross-cutting UX rules**: interaction patterns that apply across all surfaces
-
-**Does NOT include**: code snippets, component APIs, token values — those live in `packages/ui` as the implementation.
-
-### Decision 9: `docs/OPERATIONS.md` — Only Where Needed
-
-- **No root `docs/OPERATIONS.md`**
-- Only subprojects with genuinely complex or independent operations get their own `OPERATIONS.md` (e.g., `services/api`, `services/media-workflow`)
-- Most subprojects: `README.md` (ops) + `AGENTS.md` (context) is sufficient
-
-### Decision 10: `openspec/specs/` as Canonical Requirements
-
-- `openspec/specs/<capability>.md` is the authoritative spec for each capability
-- Subproject `AGENTS.md` files **point to relevant specs** via inline links under a "Specs relacionados" section
-- Specs answer "what must this feature do?"; AGENTS.md answers "what does this component do and how does it relate?"
+Sem root `docs/OPERATIONS.md`. Só subprojetos com ops complexas/independentes ganham `OPERATIONS.md` próprio.
 
 ## Risks / Trade-offs
 
-- **[Risk]** `docs/old/` may accumulate if teams archive docs but never clean up → **Mitigation:** Review `docs/old/` quarterly; content that becomes relevant again should be promoted, not left archived
-- **[Risk]** Without enforcement, docs may drift back into duplication patterns → **Mitigation:** This change establishes the rule; a linter or CI check could enforce no-duplication in a later change
-- **[Risk]** Subproject AGENTS.md may become stale if teams don't update when adding integrations → **Mitigation:** Loose structure reduces friction to update; "O que NÃO faz" is the most critical section for AI correctness
-- **[Trade-off]** `docs/PRODUCT.md` written fresh means institutional knowledge in `docs/context/product-context.md` may be lost if not explicitly captured → **Mitigation:** `docs/old/product-context.md` preserved for reference; writer of `PRODUCT.md` should consult it
+- **[Risk]** `docs/old/` acumula se não fizer cleanup periódico → **Mitigation:** review quarterly
+- **[Risk]** Sem enforcement, docs voltam a duplicar → **Mitigation:** futuro linter CI check
+- **[Risk]** AGENTS.md fica stale se teams não atualizam → **Mitigation:** loose structure = low friction to update
+- **[Trade-off]** `PRODUCT.md` escrito do zero pode perder knowledge de `product-context.md` → **Mitigation:** `docs/old/product-context.md` preservado para referência
 
 ## Migration Plan
 
-1. **Phase 1 — Create new structure** (no content yet):
-   - Create `docs/adrs/` directory
-   - Create empty `docs/old/` directory
-   - Create placeholder `docs/CONSTITUTION.md`, `docs/PRODUCT.md`, `docs/DESIGN.md`
+```
+Phase 1 — Create structure
+  mkdir -p docs/adrs/ docs/old/
+  touch docs/CONSTITUTION.md docs/PRODUCT.md docs/DESIGN.md
 
-2. **Phase 2 — Populate content**:
-   - Extract ADRs from `docs/ARCHITECTURE.md` into `docs/adrs/*.md`
-   - Write `docs/PRODUCT.md` (informed by `docs/old/product-context.md`)
-   - Write `docs/CONSTITUTION.md` (product identity, values, principles)
-   - Write `docs/DESIGN.md` (strategic design constitution)
+Phase 2 — Populate
+  Extrair ADRs de ARCHITECTURE.md → docs/adrs/*.md
+  Escrever docs/PRODUCT.md (informado por docs/old/product-context.md)
+  Escrever docs/CONSTITUTION.md
+  Escrever docs/DESIGN.md
 
-3. **Phase 3 — Cleanup**:
-   - Move `docs/context/product-context.md` and `docs/context/flow-midia.md` to `docs/old/`
-   - Update `docs/ARCHITECTURE.md` to be an index referencing `docs/adrs/`
-   - Update all `AGENTS.md` filenames and titles
-   - Fix all links (`AGENTE.md` → `AGENTS.md`, broken links)
-   - Update `openspec/specs/monorepo-agent-context/spec.md`
-   - Update subproject `README.md` and `AGENTS.md` to reference canonical sources
+Phase 3 — Cleanup
+  mv docs/context/*.md docs/old/
+  Atualizar ARCHITECTURE.md como index de ADRs
+  Renomear # AGENTE.md → # AGENTS.md em todos os arquivos
+  Consertar links AGENTE.md → AGENTS.md
+  Atualizar openspec/specs/monorepo-agent-context/spec.md
+  Atualizar subproject README + AGENTS
 
-4. **Phase 4 — Validation**:
-   - Verify no broken links remain
-   - Verify no document duplicates content it should reference
-   - Verify all `AGENTS.md` files are accessible and correctly titled
-
-**Rollback:** If something goes wrong, `docs/old/` preserves the previous state. Git history provides additional safety net.
+Phase 4 — Validation
+  Verificar links quebrados
+  Verificar duplicações
+  Verificar todos AGENTS.md acessíveis e corretamente titulados
+```
 
 ## Open Questions
 
-- **Should we add a CI check that enforces no duplicate content between `docs/` and subproject `AGENTS.md`?** — Not in scope for this change, but worth a future linter rule.
-- **Should `docs/context/` be deleted after archiving to `docs/old/`?** — Decision: keep `docs/context/` as empty directory (or delete entirely) after moving files. Presence of `docs/context/` may cause confusion if people assume it's still active.
-- **Do we need a `docs/OPERATIONS.md` at root for monorepo-level ops (pnpm commands, turborepo, submodule workflow)?** — Current decision: no. If ops docs become complex at root level, revisit.
+- CI check anti-duplicação? — futuro, não neste change
+- `docs/context/` deletado após archivar? — manter directory vazio ou deletar
+- `docs/OPERATIONS.md` no root para ops de monorepo? — decisão: não por agora
