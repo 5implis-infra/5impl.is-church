@@ -1,12 +1,32 @@
-schema: spec-driven
+schema: intent-driven
 
 context: |
   Language: Portuguese (pt-BR)
-  All artifacts must be written in Brazilian Portuguese.
+  All artifacts must be written in English.
 
-  This project uses Expo, Hono, tRPC, Prisma, Tailwindcss v4.
+  MUST use brainstorming mode before creating proposal artifacts.
+  Explore user intent, constraints, and alternatives through focused questions,
+  then summarize the agreed direction before writing.
 
-  We are using the monorepo architecture with Git submodules.
+  For propose/apply/verify/archive workflows, use the local `openspec-git-discipline` skill
+  to enforce proposal commits.
 
-  The goal is to create a SaaS product for churches.
-
+rules:
+  proposal:
+    - Must use grill-me skill
+  design:
+    - Must use c4-architecture skill
+    - Must use caveman skill
+    - Must use improve-codebase-architecture skill
+    - Must use site-architecture skill
+    - Must use tailwind-design-system skill
+    - Must use frontend-design skill
+    - Must use ui-ux-pro-max skill
+  adr:
+    - Must use architecture-decision-records skill
+    - Must use c4-architecture skill
+  spec:
+    - Must use gherkin-authoring skill
+  tasks:
+    - Must use openspec-apply-change skill
+    - Must use openspec-verify-change skill

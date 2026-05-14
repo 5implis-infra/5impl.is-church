@@ -1,0 +1,10 @@
+// .vscode/settings.json
+{
+  "chat.agentSkillsLocations": {
+    ".agents/skills": true
+  },
+  "chat.agentFilesLocations": {
+    ".agents/agents": true
+  },
+  "chat.useCustomizationsInParentRepositories": true
+}

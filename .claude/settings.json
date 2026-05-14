@@ -1,7 +1,33 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C /home/itbrda/dev/adponte/saas submodule foreach --recursive 'echo \"=== $displaypath ===\" && git status --short')"
+      "Bash(git submodule foreach --recursive 'echo \"=== $displaypath ===\" && git status --short')",
+      "Bash(bash .agents/scripts/on-skill-install.sh)",
+      "Bash(bash .agents/scripts/scan-skills.sh)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/scripts/on-skill-install.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/scripts/scan-skills.sh",
+            "timeout": 15
+          }
+        ]
+      }
     ]
   }
 }

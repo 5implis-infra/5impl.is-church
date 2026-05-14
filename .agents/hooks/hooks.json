@@ -1,0 +1,34 @@
+{
+  "version": "1",
+  "hooks": [
+    {
+      "id": "skill-security-quarantine",
+      "description": "Quarantine new skills added to .agents/skills/ pending security audit",
+      "on": {
+        "events": [
+          "PostToolUse:Write",
+          "after:tool:write",
+          "file:written",
+          "file:created",
+          "on_write",
+          "post_write"
+        ],
+        "filter": {
+          "path_pattern": ".agents/skills/*/SKILL.md",
+          "exclude": [
+            ".agents/skills/disabled/**",
+            ".agents/skills/skill-security-auditor/**"
+          ]
+        }
+      },
+      "run": "bash .agents/scripts/on-skill-install.sh",
+      "timeout": 10,
+      "input": {
+        "claude-code": "stdin:json",
+        "opencode": "stdin:json",
+        "antigravity": "arg:file_path",
+        "generic": "stdin:json|arg:0|env:FILE_PATH"
+      }
+    }
+  ]
+}
