@@ -170,6 +170,17 @@ Decisões arquiteturais formais para itens de escopo global do monorepo.
 | [007](adrs/007-one-repo-per-component.md) | Git Granularity: 1 Repo per Component | Aceito |
 | [009](adrs/009-n8n-ownership.md) | Separation of `services/api` and `services/media-workflow` | Aceito |
 
+## ADRs Resolvidos (anteriormente TBDs)
+
+| ADR | Título | Resolved |
+|---|---|---|
+| [013](adrs/013-multi-tenancy-database-isolation.md) | Multi-Tenancy Database Isolation | 2026-05-14 |
+| [014](adrs/014-authentication-library.md) | Authentication Library: Better Auth | 2026-05-14 |
+| [015](adrs/015-payment-gateway.md) | Payment Gateway: Asaas | 2026-05-14 |
+| [016](adrs/016-notifications-stack.md) | Notifications Stack | 2026-05-14 |
+| [017](adrs/017-api-local-stack.md) | API-Local Stack: Hono Lite | 2026-05-14 |
+| [018](adrs/018-telegram-bot-language.md) | Telegram Bot Language: Python | 2026-05-14 |
+
 ## ADRs Locais
 
 Decisões de escopo específico por componente ou domínio.
@@ -182,13 +193,4 @@ Decisões de escopo específico por componente ou domínio.
 
 ---
 
-## TBDs Arquiteturais
-
-| Área | Questão em aberto | Abordagem sugerida |
-|---|---|---|
-| **Isolamento multi-tenancy no banco** | Schema único com `church_id` vs schemas separados por tenant | Schema único + RLS (Row-Level Security) no PostgreSQL — menor custo operacional para o estágio atual |
-| **Biblioteca de autenticação** | Qual lib gerencia sessões, 2FA, login social, tokens por filial | Better Auth (mais completo e TypeScript-first) ou solução própria com Hono middleware |
-| **Gateway de pagamentos** | PIX, boleto, cartão, parcelamento | Asaas (melhor cobertura BR + PIX nativo) ou Pagar.me |
-| **Stack de notificações** | Push, email, WhatsApp, Telegram — quais providers | Resend (email), FCM (push), Evolution API (WhatsApp self-hosted) |
-| **api-local (stack)** | Framework para mini-PC com recursos limitados | Hono leve (consistente com o restante da stack TypeScript) |
-| **Telegram bot (linguagem)** | Python ou Node.js | Python (consistente com workers de mídia) ou Node.js (consistente com API) |
+<!-- TBDs resolved — see ADRs 013–018 above -->
