@@ -1,4 +1,4 @@
-# AGENTE.md — AD Ponte SaaS
+# AGENTS.md — AD Ponte SaaS
 
 Contexto de domínio, arquitetura e decisões do monorepo `adponte-infra/saas`.
 Leitura recomendada antes de trabalhar em qualquer parte do sistema.
@@ -253,6 +253,18 @@ O `saas` é o monorepo agregador. Cada componente é um repo GitHub independente
 **Infra (1):** `n8n`
 
 Total: 22 submodules. Ver `.gitmodules` para URLs completas.
+
+---
+
+## Specs Relacionados
+
+| Spec | Descrição |
+|---|---|
+| [monorepo-agent-context](../openspec/specs/monorepo-agent-context/spec.md) | Contexto de agente, domínio, TBDs, padrões de código |
+| [monorepo-root-readme](../openspec/specs/monorepo-root-readme/spec.md) | Porta de entrada, quickstart, tabela de componentes |
+| [monorepo-architecture-doc](../openspec/specs/monorepo-architecture-doc/spec.md) | Documentação arquitetural formal |
+| [project-initial-documentation](../openspec/specs/project-initial-documentation/spec.md) | Requisitos de documentação para novos projetos |
+| [documentation-source-of-truth](../openspec/specs/documentation-source-of-truth/spec.md) | Hierarquia de documentação e regras de ownership |
 
 ---
 

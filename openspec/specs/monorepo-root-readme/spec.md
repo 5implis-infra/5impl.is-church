@@ -39,11 +39,11 @@ O `README.md` SHALL conter um bloco de código com os comandos mínimos para clo
 - **THEN** inclui `pnpm install` e `pnpm dev`
 
 ### Requirement: README aponta para documentos complementares
-O `README.md` SHALL conter links para `AGENTE.md` e `docs/ARCHITECTURE.md`.
+O `README.md` SHALL conter links para `AGENTS.md` e `docs/ARCHITECTURE.md`.
 
 #### Scenario: Links de navegação presentes
 - **WHEN** se lê o `README.md`
-- **THEN** existe link para `AGENTE.md`
+- **THEN** existe link para `AGENTS.md`
 - **THEN** existe link para `docs/ARCHITECTURE.md`
 
 ### Requirement: README não contém decisões técnicas detalhadas

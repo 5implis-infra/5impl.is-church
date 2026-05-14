@@ -2,7 +2,7 @@
 
 SaaS multi-tenant para gestão de igrejas — administração, comunicação e produção de mídia para igrejas com múltiplas filiais.
 
-> Documentação completa: [AGENTE.md](AGENTE.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+> Documentação completa: [AGENTS.md](AGENTS.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 

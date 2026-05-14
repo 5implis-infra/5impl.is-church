@@ -1,7 +1,7 @@
 # Arquitetura — AD Ponte SaaS
 
-> Documento de referência técnica: ADRs, diagrama de sistema, stack por componente, topologia de deploy e pipeline de mídia.
-> Atualizado em: 2026-05-07
+> Documento de referência técnica: visão geral do sistema, diagrama, stack por componente, topologia de deploy e pipeline de mídia. Decisões arquiteturais formais (ADRs) vivem em `docs/adrs/*.md`.
+> Atualizado em: 2026-05-14
 
 ---
 
@@ -11,7 +11,7 @@
 ┌──────────────────────────────────────────────────────────────────┐
 │                          CLIENTES                                │
 ├───────────────────┬──────────────────┬───────────────────────────┤
-│    admin-web      │    admin-app     │       member-app          │
+│    admin-web      │    admin-app     │       member-app           │
 │   (Next.js 15)    │    (Expo nativo) │      (Expo nativo)        │
 │   web browser     │  iOS / Android   │      iOS / Android        │
 │  tudo gerencial   │ gerencial subset │  membro + anônimo         │
@@ -21,7 +21,7 @@
               ┌─────────────────────────┐
               │      services/api       │  ← ÚNICO entry point para apps
               │   Hono + tRPC + Prisma  │
-              │   Node.js / VPS         │
+              │   Node.js / VPS          │
               └─────┬──────────┬────────┘
                     │          │
           ┌─────────┘          └────────────────────────┐
@@ -29,22 +29,19 @@
      PostgreSQL                          services/media-workflow
      (Prisma)                            Hono + tRPC / VPS
      VPS Hetzner                         event-driven, async
-                                         (nunca chamado por apps)
-                                                │
+                                          (nunca chamado por apps)
+                                                 │
                               ┌─────────────────┼──────────────────┐
                               ▼                 ▼                  ▼
                          infra/n8n         workers/media/*    Cloudflare R2
                          (self-hosted)     (transcript,        (storage)
                          VPS Coolify       ffmpeg, images,
                                            davinci)
-                                                │
-                              ┌─────────────────┤
-                              ▼                 ▼
-                       telegram-bot           Postiz
-                       (aprovação)       (publicação social)
                               │
-                              ▼
-                    Instagram · YouTube · Feed · Stories
+          ┌────────────────────┼────────────────────┐
+          ▼                    ▼                    ▼
+    telegram-bot           Postiz              Instagram · YouTube
+    (aprovação)       (publicação social)         Feed · Stories
 
 ────────────────────────────────────────────────────────────────
 EDGE (mini-PC da Igreja)
@@ -83,25 +80,25 @@ CI/CD (build out-of-VPS):
 ## Topologia de Deploy
 
 ```
-┌─────────────────────────────────────────────────────┐
-│              Hetzner VPS (principal)                │
-│   Gerenciado via Coolify                            │
-│                                                     │
-│  ┌──────────────┐  ┌──────────────────────────────┐ │
-│  │  services/   │  │  workers/system/*            │ │
-│  │  api         │  │  notifications, sync,        │ │
-│  │  media-      │  │  scheduled-jobs              │ │
-│  │  workflow    │  └──────────────────────────────┘ │
-│  └──────────────┘                                   │
-│  ┌──────────────┐  ┌──────────────┐                 │
-│  │  apps/       │  │  infra/n8n   │                 │
-│  │  admin-web   │  │  Postiz      │                 │
-│  └──────────────┘  └──────────────┘                 │
-│  ┌──────────────┐                                   │
-│  │  Turborepo   │  ← ducktors/turborepo-remote-cache│
-│  │  Remote Cache│                                   │
-│  └──────────────┘                                   │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│              Hetzner VPS (principal)                        │
+│   Gerenciado via Coolify                                    │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────────────────────┐         │
+│  │  services/   │  │  workers/system/*            │         │
+│  │  api         │  │  notifications, sync,        │         │
+│  │  media-      │  │  scheduled-jobs              │         │
+│  │  workflow    │  └──────────────────────────────┘         │
+│  └──────────────┘                                           │
+│  ┌──────────────┐  ┌──────────────┐                         │
+│  │  apps/       │  │  infra/n8n   │                         │
+│  │  admin-web   │  │  Postiz      │                         │
+│  └──────────────┘  └──────────────┘                         │
+│  ┌──────────────┐                                           │
+│  │  Turborepo   │  ← ducktors/turborepo-remote-cache        │
+│  │  Remote Cache│                                           │
+│  └──────────────┘                                           │
+└─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────┐
 │  RunPod (serverless GPU)    │
@@ -160,6 +157,31 @@ Steps de deploy usam `if: ${{ !env.ACT }}` para não executar localmente.
 
 ---
 
+## ADRs Globais
+
+Decisões arquiteturais formais para itens de escopo global do monorepo.
+
+| ADR | Título | Status |
+|---|---|---|
+| [001](adrs/001-git-submodules.md) | Git Submodules Strategy | Aceito |
+| [002](adrs/002-directory-structure.md) | Directory Structure | Aceito |
+| [003](adrs/003-ci-cd.md) | CI/CD: GitHub Actions + GHCR + Coolify | Aceito |
+| [006](adrs/006-product-multi-tenancy.md) | Product: Multi-Tenant SaaS for Churches | Aceito |
+| [007](adrs/007-one-repo-per-component.md) | Git Granularity: 1 Repo per Component | Aceito |
+| [009](adrs/009-n8n-ownership.md) | Separation of `services/api` and `services/media-workflow` | Aceito |
+
+## ADRs Locais
+
+Decisões de escopo específico por componente ou domínio.
+
+| ADR | Título | Escopo |
+|---|---|---|
+| [004](adrs/004-remote-cache.md) | Turborepo Remote Cache: Self-Hosted | Infra/VPS |
+| [005](adrs/005-site-saas-separation.md) | Site Astro: Independent Repo | `adponte-infra/site` |
+| [008](adrs/008-api-media-workflow-split.md) | Complete Separation of `site` and `saas` | `saas` vs `site` |
+
+---
+
 ## TBDs Arquiteturais
 
 | Área | Questão em aberto | Abordagem sugerida |
@@ -169,116 +191,4 @@ Steps de deploy usam `if: ${{ !env.ACT }}` para não executar localmente.
 | **Gateway de pagamentos** | PIX, boleto, cartão, parcelamento | Asaas (melhor cobertura BR + PIX nativo) ou Pagar.me |
 | **Stack de notificações** | Push, email, WhatsApp, Telegram — quais providers | Resend (email), FCM (push), Evolution API (WhatsApp self-hosted) |
 | **api-local (stack)** | Framework para mini-PC com recursos limitados | Hono leve (consistente com o restante da stack TypeScript) |
-
----
-
-## ADR-001 — Estratégia Git: Submodules
-
-**Data:** 2026-04-16 | **Status:** Aceito
-
-**Contexto:** O `saas` contém projetos com stacks diferentes (Next.js, Expo, Hono, Python) que evoluem em ritmos distintos.
-
-**Decisão:** Usar Git Submodules dentro do `saas`. Cada componente é um repositório GitHub privado independente. O root do `saas` referencia cada componente via `.gitmodules`.
-
-**Consequências:**
-- Cada projeto mantém histórico, issues e CI/CD próprios
-- `git clone --recurse-submodules` obrigatório
-- Atualizações de submodule requerem commit no root
-
----
-
-## ADR-002 — Estrutura de Diretórios
-
-**Data:** 2026-04-16 | **Revisão:** 2026-04-25 | **Status:** Aceito
-
-**Decisão:** Turborepo com organização por domínio: `apps/`, `services/`, `workers/media/`, `workers/system/`, `packages/`, `infra/`.
-
-**Mudanças v2:**
-- Fim do mini-monorepo `apps/gestao`: cada componente promovido a repo próprio
-- Workers agrupados por domínio: `media/` e `system/`
-- `services/n8n` migrado para `infra/n8n`
-- `apps/site` separado como repo independente
-
----
-
-## ADR-003 — CI/CD: GitHub Actions + GHCR + Coolify
-
-**Data:** 2026-04-16 | **Status:** Aceito
-
-**Decisão:** `push → GitHub Actions (build + push → GHCR) → webhook → Coolify (pull + deploy)`
-
-- Build fora da VPS (não consome recursos do servidor)
-- GHCR gratuito para repos privados
-- Coolify: zero-downtime restart via webhook
-
-**GitHub Secrets necessários por projeto:**
-
-| Secret | Propósito |
-|---|---|
-| `TURBO_API` | URL do Turborepo Remote Cache |
-| `TURBO_TOKEN` | Token de autenticação do cache |
-| `TURBO_TEAM` | Team ID do Turborepo |
-| `COOLIFY_TOKEN` | Token do Coolify |
-| `COOLIFY_WEBHOOK_*` | URL de webhook por serviço |
-
----
-
-## ADR-004 — Turborepo Remote Cache: Self-Hosted
-
-**Data:** 2026-04-16 | **Status:** Planejado
-
-**Decisão:** `ducktors/turborepo-remote-cache` na própria VPS Hetzner. Evita rebuilds desnecessários entre máquinas locais e CI.
-
----
-
-## ADR-005 — Site Astro: Repo Independente
-
-**Data:** 2026-04-16 | **Revisão:** 2026-04-25 | **Status:** Aceito
-
-**Decisão:** `adponte-infra/site` é um repo Git completamente independente. Não compartilha workspace, Turbo, pnpm-workspace ou tsconfig com o `saas`. Stack: Astro Hybrid + Tailwind + Directus.
-
----
-
-## ADR-006 — Produto: SaaS Multi-Tenant para Igrejas
-
-**Data:** 2026-04-16 | **Status:** Aceito
-
-**Decisão:** Plataforma SaaS multi-tenant para gestão de igrejas. Multi-tenancy via `churchId`/`slug` em todos os modelos de domínio. Habilitação de módulos por feature flags + planos de assinatura.
-
----
-
-## ADR-007 — Granularidade Git: 1 Repo por Componente
-
-**Data:** 2026-04-25 | **Status:** Aceito
-
-**Contexto:** Na v1, `gestao` era um mini-monorepo interno com múltiplos apps/services/packages, gerando acoplamento entre componentes com ciclos de release diferentes.
-
-**Decisão:** Dentro do `saas`, cada app, service, worker e package é um repo Git independente. O monorepo agregador referencia todos como submodules.
-
-**Consequências:** 22 submodules; cada componente pode evoluir, ser deployado e ter CI/CD independentemente.
-
----
-
-## ADR-008 — Separação Completa de `site` e `saas`
-
-**Data:** 2026-04-25 | **Status:** Aceito
-
-**Decisão:** `site` e `saas` são repositórios Git completamente independentes. Não existe terceiro repo agregador acima dos dois.
-
----
-
-## ADR-009 — Separação de `services/api` e `services/media-workflow`
-
-**Data:** 2026-05-07 | **Status:** Aceito
-
-**Contexto:** O produto tem dois tipos de operação sistêmica distintos: CRUD/regras de negócio (request/response) e orquestração de workflow de mídia (event-driven, longa duração).
-
-**Decisão:**
-- `services/api` concentra toda a lógica de produto (todos os módulos + billing + tenants). É a API request/response consumida por apps e workers.
-- `services/media-workflow` é exclusivo para o Módulo Mídia: recebe eventos do `api-local`, mantém state machine dos jobs, dispara e recebe callbacks do `infra/n8n`.
-
-**Consequências:**
-- `services/api` é o único serviço chamado diretamente por apps
-- `services/media-workflow` nunca é chamado por apps — apenas reage a eventos
-- Billing, planos e tenants são domínio interno do `services/api`
-- Ciclos de deploy independentes entre os dois serviços
+| **Telegram bot (linguagem)** | Python ou Node.js | Python (consistente com workers de mídia) ou Node.js (consistente com API) |
