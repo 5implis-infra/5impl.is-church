@@ -41,4 +41,4 @@
 ## 7. Validate and commit
 
 - [x] 7.1 Verify no duplication with root docs across all updated READMEs
-- [ ] 7.2 Commit changes
+- [x] 7.2 Commit changes
