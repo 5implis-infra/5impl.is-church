@@ -1,0 +1,23 @@
+---
+id: decision-001
+title: "Git Submodules Strategy"
+date: "2026-04-16"
+status: accepted
+---
+<!-- generated-by: adponte-backlog-doc-index -->
+
+Canonical ADR: [001-git-submodules.md](../../docs/adrs/001-git-submodules.md)
+
+## Context
+
+The `saas` contains projects with different stacks (Next.js, Expo, Hono, Python) that evolve at different rates.
+
+## Decision
+
+Use Git Submodules within `saas`. Each component is an independent private GitHub repository. The `saas` root references each component via `.gitmodules`.
+
+## Consequences
+
+- Each project maintains its own history, issues, and CI/CD
+- `git clone --recurse-submodules` is required
+- Submodule updates require a commit in the root
