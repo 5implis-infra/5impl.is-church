@@ -241,6 +241,7 @@ Total: 22 submodules. Ver `.gitmodules` para URLs completas.
 | [monorepo-architecture-doc](../openspec/specs/monorepo-architecture-doc/spec.md) | Documentação arquitetural formal |
 | [project-initial-documentation](../openspec/specs/project-initial-documentation/spec.md) | Requisitos de documentação para novos projetos |
 | [documentation-source-of-truth](../openspec/specs/documentation-source-of-truth/spec.md) | Hierarquia de documentação e regras de ownership |
+| [openspec-backlog-sync](./docs/OPENSPEC-BACKLOG.md) | OpenSpec ↔ Backlog task bidirectional sync integration |
 
 ---
 
