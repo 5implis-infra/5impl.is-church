@@ -7,6 +7,12 @@
       "skillPath": "skills/agent-browser/SKILL.md",
       "computedHash": "228f87d57035100d9dc6efcfc05aafd4b6e3962adacaa04b8217ab2fadb15dc8"
     },
+    "arc42-documentation": {
+      "source": "oocx/tfplan2md",
+      "sourceType": "github",
+      "skillPath": ".github/skills/arc42-documentation/SKILL.md",
+      "computedHash": "ece2a34a36a6c590ba165e8d59eef32cf2e07e190311a8fe2782e178c07887ee"
+    },
     "architecture-decision-records": {
       "source": "wshobson/agents",
       "sourceType": "github",
