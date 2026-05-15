@@ -75,7 +75,9 @@ $HOOK_BLOCK_START
 
 scripts/.git/backlog-sync-docs-to-backlog.sh
 scripts/.git/backlog-sync-backlog-to-docs.sh
-scripts/.git/sync-openspec-changes-to-backlog.sh
+
+scripts/.git/openspec-sync-changes-to-backlog.sh
+scripts/.git/scripts/.git/sync-openspec-changes-to-backlog.sh
 $HOOK_BLOCK_END
 HOOK_EOF
 
