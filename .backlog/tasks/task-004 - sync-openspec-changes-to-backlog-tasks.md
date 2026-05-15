@@ -7,9 +7,10 @@ references: []
 documentation: []
 generated-by: openspec-backlog-task-sync
 ---
-## OpenSpec Proposal
+
+## Description
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PROPOSAL:BEGIN -->
+<!-- SECTION:DESCRIPTION:BEGIN -->
 ## Why
 
 OpenSpec changes are the canonical source for planning and design, but the team uses Backlog for daily Kanban-style execution tracking. We already sync `docs/` ↔ `.backlog/docs/` and `docs/adrs/` ↔ `.backlog/decisions/` via pre-commit hooks. We need a similar integration for OpenSpec changes and Backlog tasks so that an OpenSpec change can be projected onto the Backlog board without duplicating rich artifact content.
@@ -45,11 +46,11 @@ OpenSpec changes are the canonical source for planning and design, but the team 
 - Modified files: `AGENTS.md` (add integration note), `.git/hooks/pre-commit` (add new hook), possibly `.backlog/config.yml` if new fields needed
 - No changes to existing OpenSpec change structure or Backlog task schema — integration is additive
 - Does not conflict with existing `docs/` ↔ `.backlog/docs/` sync hooks
-<!-- OPENSPEC:PROPOSAL:END -->
+<!-- SECTION:DESCRIPTION:END -->
 
-## OpenSpec Design
+## Discussion
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:DESIGN:BEGIN -->
+<!-- SECTION:DISCUSSION:BEGIN -->
 ## Context
 
 OpenSpec changes are the canonical source for planning and design in this monorepo. The team also uses Backlog for task/board tracking. We already have bidirectional sync hooks for `docs/` ↔ `.backlog/docs/` and `docs/adrs/` ↔ `.backlog/decisions/`. We need a similar integration for OpenSpec change artifacts and Backlog tasks, enabling an OpenSpec change to appear as a Backlog task on the operational board.
@@ -163,11 +164,11 @@ The new hook `scripts/.git/sync-openspec-changes-to-backlog.sh` runs `tsx script
 3. **Initial sync scope** — should the first run retroactively sync all existing OpenSpec changes, or only changes created after the integration is deployed?
 4. **Content truncation threshold** — is 500 lines a reasonable limit for embedded content, or should it be configurable per artifact type?
 5. **Backlog file naming** — should we use `openspec-<id> - <title>.md` or just mirror the task prefix from `.backlog/config.yml`?
-<!-- OPENSPEC:DESIGN:END -->
+<!-- SECTION:DISCUSSION:END -->
 
-## OpenSpec Tasks
+## Acceptance Criteria
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:TASKS:BEGIN -->
+<!-- AC:BEGIN -->
 ## 1. Script Infrastructure
 
 - [x] 1.1 Create `scripts/sync-openspec-change-to-backlog.ts` — main sync script (OpenSpec → Backlog)
@@ -224,11 +225,11 @@ The new hook `scripts/.git/sync-openspec-changes-to-backlog.sh` runs `tsx script
 
 - [x] 8.1 Run initial sync on existing OpenSpec changes (existing changes created before this integration)
 - [x] 8.2 Verify all generated Backlog tasks are readable and have correct content
-<!-- OPENSPEC:TASKS:END -->
+<!-- AC:END -->
 
-## OpenSpec Plan
+## Implementation Plan
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PLAN:BEGIN -->
+<!-- SECTION:PLAN:BEGIN -->
 ## Task Groups
 
 ## Micro-steps
@@ -334,4 +335,4 @@ The new hook `scripts/.git/sync-openspec-changes-to-backlog.sh` runs `tsx script
 - **File paths**: (runs existing scripts)
 - **Test commands**: `ls .backlog/tasks/` and spot-check 2-3 generated tasks for content
 - **Commit point**: After verifying all tasks synced correctly
-<!-- OPENSPEC:PLAN:END -->
+<!-- SECTION:PLAN:END -->

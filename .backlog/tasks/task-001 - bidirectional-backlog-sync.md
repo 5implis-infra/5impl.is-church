@@ -2,14 +2,19 @@
 id: task-001
 title: bidirectional-backlog-sync
 status: To Do
-labels: ["openspec", "sync"]
-references: []
-documentation: []
-generated-by: openspec-backlog-task-sync
+assignee: []
+created_date: ''
+updated_date: '2026-05-15 06:49'
+labels:
+  - openspec
+  - sync
+dependencies: []
+priority: low
 ---
-## OpenSpec Proposal
+
+## Description
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PROPOSAL:BEGIN -->
+<!-- SECTION:DESCRIPTION:BEGIN -->
 ## Why
 
 O sync atual `docs/` → `.backlog/` gera stubs parciais que não contêm o conteúdo completo dos documentos. Precisa ser bidirecional: não apenas expor docs ao Backlog, mas também permitir que arquivos em `.backlog/` sejam a fonte visível ao Backlog enquanto o conteúdo completo é mantido sincronizado.
@@ -31,11 +36,11 @@ O sync atual `docs/` → `.backlog/` gera stubs parciais que não contêm o cont
 - `scripts/backlog-sync-doc-index.ts`: modificado para cópia integral
 - `.git/hooks/pre-commit`: adicionado handler para `backlog→docs`
 - Novos stubs em `.backlog/` conterão conteúdo completo ao invés de stubs
-<!-- OPENSPEC:PROPOSAL:END -->
+<!-- SECTION:DESCRIPTION:END -->
 
-## OpenSpec Design
+## Discussion
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:DESIGN:BEGIN -->
+<!-- SECTION:DISCUSSION:BEGIN -->
 ## Context
 
 O sistema atual gera stubs parciais em `.backlog/` que contêm apenas frontmatter e um link para o arquivo canônico. O objetivo é ter `.backlog/` como um espelho completo de `docs/` e `docs/adrs/`, com conteúdo integral disponível ao Backlog.md.
@@ -74,11 +79,11 @@ Se ambos forem editados entre commits, `docs/` wins (source of truth).
 2. Instalar novo hook com handler `backlog→docs`
 3. Commitar novos stubs gerados
 4. Testar cenários de edit, delete, rename nas duas direções
-<!-- OPENSPEC:DESIGN:END -->
+<!-- SECTION:DISCUSSION:END -->
 
-## OpenSpec Tasks
+## Acceptance Criteria
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:TASKS:BEGIN -->
+<!-- AC:BEGIN -->
 ## 1. Script Modification - Full Content Sync
 
 - [x] 1.1 Modify `generateDocStub()` to include full file content instead of just link
@@ -108,11 +113,11 @@ Se ambos forem editados entre commits, `docs/` wins (source of truth).
 - [x] 4.3 Test: Delete scenario in both directions
 - [x] 4.4 Test: Rename scenario in both directions
 - [x] 4.5 Test: Modified-only edit does not trigger cross-directional sync
-<!-- OPENSPEC:TASKS:END -->
+<!-- AC:END -->
 
-## OpenSpec Plan
+## Implementation Plan
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PLAN:BEGIN -->
+<!-- SECTION:PLAN:BEGIN -->
 ## Task Groups
 
 ## 1. Script Modification - Full Content Sync
@@ -171,7 +176,7 @@ After step 6 - commit "chore: add bidirectional sync to pre-commit hook"
 
 ### Micro-steps
 
-1. **Run `backlog-sync-doc-index.ts --full`** to regenerate all stubs with full content
+1. **Run `backlog-sync-doc-index.ts --full`** to regenerate all stubs with full contents
 2. **Verify content**: compare a few `.backlog/` files with original `docs/` files
 3. **Stage and commit** regenerated stubs
 
@@ -207,4 +212,4 @@ After step 3 - commit "chore: regenerate backlog stubs with full content"
 
 ### Commit point
 After all tests pass - commit "test: add bidirectional sync verification tests"
-<!-- OPENSPEC:PLAN:END -->
+<!-- SECTION:PLAN:END -->

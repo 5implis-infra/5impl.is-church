@@ -2,14 +2,18 @@
 id: task-003
 title: sync-backlog-doc-index
 status: To Do
-labels: ["openspec", "sync"]
-references: []
-documentation: []
-generated-by: openspec-backlog-task-sync
+assignee: []
+created_date: ''
+updated_date: '2026-05-15 06:44'
+labels:
+  - openspec
+  - sync
+dependencies: []
 ---
-## OpenSpec Proposal
+
+## Description
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PROPOSAL:BEGIN -->
+<!-- SECTION:DESCRIPTION:BEGIN -->
 ## Why
 
 Backlog.md is used as the project task manager and Kanban board. Its `docs` and `decisions` features allow AI agents to discover and navigate project documentation via `backlog doc list`, `backlog decision list`, and `backlog search`. Currently, canonical project documentation lives under `docs/` and `docs/adrs/` but is invisible to Backlog's search and list commands because the files do not follow Backlog's naming conventions and frontmatter format. This creates a gap where agents working through Backlog cannot see existing architecture decisions and documentation unless they are explicitly pointed to the canonical paths.
@@ -40,11 +44,11 @@ Backlog.md is used as the project task manager and Kanban board. Its `docs` and 
 - No changes to existing documentation files in `docs/` or `docs/adrs/`.
 - No changes to Backlog.md configuration or task structure.
 - No breaking changes to existing workflows.
-<!-- OPENSPEC:PROPOSAL:END -->
+<!-- SECTION:DESCRIPTION:END -->
 
-## OpenSpec Design
+## Discussion
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:DESIGN:BEGIN -->
+<!-- SECTION:DISCUSSION:BEGIN -->
 ## Context
 
 Canonical project documentation lives under `docs/` and `docs/adrs/`. Backlog.md manages tasks and exposes `backlog doc list` and `backlog decision list` commands that only surface files inside `.backlog/docs/` and `.backlog/decisions/`. These two documentation worlds are currently disconnected: canonical docs are invisible to Backlog's discovery commands.
@@ -197,54 +201,63 @@ Both should show canonical docs and ADRs through the generated stubs.
 - **Which hook mechanism is already in use?** Check for existing `lefthook.yml`, `.husky/`, or similar before installing raw hooks. If none exists, use the plain `.git/hooks/pre-commit` installer.
 - **Should `docs/adrs/` files be excluded from `.backlog/docs` generation?** Yes — by design, ADRs live under `.backlog/decisions/`. The script explicitly excludes `docs/adrs/` from the docs scan.
 - **Should the initial `--full` sync be run manually or automated?** Manual first-run is safer so the team can review generated stubs before committing. After that, the pre-commit hook handles ongoing sync automatically.
-<!-- OPENSPEC:DESIGN:END -->
+<!-- SECTION:DISCUSSION:END -->
 
-## OpenSpec Tasks
+## Acceptance Criteria
+<!-- AC:BEGIN -->
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:TASKS:BEGIN -->
+<!-- AC:BEGIN -->
 ## 1. Script Implementation
 
-- [x] 1.1 Create `scripts/backlog-sync-doc-index.ts` with TypeScript and Zod for argument parsing
-- [x] 1.2 Implement `scanCanonicalDocs()`: walk `docs/` excluding `docs/adrs/`, extract frontmatter title
-- [x] 1.3 Implement `scanCanonicalADRs()`: walk `docs/adrs/`, extract frontmatter date/status, parse ADR sections
-- [x] 1.4 Implement `generateDocStub(file)`: produce Backlog doc stub with YAML frontmatter and canonical link
-- [x] 1.5 Implement `generateDecisionStub(file)`: produce Backlog decision stub preserving Context/Decision/Consequences
-- [x] 1.6 Implement `cleanupOrphans()`: remove stubs without canonical source, skip files without `generated-by` marker
-- [x] 1.7 Implement `--full` flag: process all canonical files regardless of staged changes
-- [x] 1.8 Add `generated-by: adponte-backlog-doc-index` marker to all generated stubs
+- [x] #1 1.1 Create `scripts/backlog-sync-doc-index.ts` with TypeScript and Zod for argument parsing
+- [x] #2 1.2 Implement `scanCanonicalDocs()`: walk `docs/` excluding `docs/adrs/`, extract frontmatter title
+- [x] #3 1.3 Implement `scanCanonicalADRs()`: walk `docs/adrs/`, extract frontmatter date/status, parse ADR sections
+- [x] #4 1.4 Implement `generateDocStub(file)`: produce Backlog doc stub with YAML frontmatter and canonical link
+- [x] #5 1.5 Implement `generateDecisionStub(file)`: produce Backlog decision stub preserving Context/Decision/Consequences
+- [x] #6 1.6 Implement `cleanupOrphans()`: remove stubs without canonical source, skip files without `generated-by` marker
+- [x] #7 1.7 Implement `--full` flag: process all canonical files regardless of staged changes
+- [x] #8 1.8 Add `generated-by: adponte-backlog-doc-index` marker to all generated stubs
 
 ## 2. Pre-Commit Hook
 
-- [x] 2.1 Detect existing hook manager (lefthook, husky) or install raw `.git/hooks/pre-commit`
-- [x] 2.2 Write pre-commit hook that inspects `git diff --cached --name-status` for `A`, `D`, `R` on `docs/**/*.md` and `docs/adrs/**/*.md`
-- [x] 2.3 Hook runs sync script and stages generated stub files
-- [x] 2.4 Hook skips sync on `M` (modified-only) changes
-- [x] 2.5 Create idempotent hook installer `scripts/install-backlog-sync-hook.sh`
+- [x] #9 2.1 Detect existing hook manager (lefthook, husky) or install raw `.git/hooks/pre-commit`
+- [x] #10 2.2 Write pre-commit hook that inspects `git diff --cached --name-status` for `A`, `D`, `R` on `docs/**/*.md` and `docs/adrs/**/*.md`
+- [x] #11 2.3 Hook runs sync script and stages generated stub files
+- [x] #12 2.4 Hook skips sync on `M` (modified-only) changes
+- [x] #13 2.5 Create idempotent hook installer `scripts/install-backlog-sync-hook.sh`
 
 ## 3. Gitignore and Directory Setup
 
-- [x] 3.1 Add `.backlog/docs/` and `.backlog/decisions/` to `.gitignore`
-- [x] 3.2 Script auto-creates `.backlog/docs/` and `.backlog/decisions/` on first run
+- [x] #14 3.1 Add `.backlog/docs/` and `.backlog/decisions/` to `.gitignore`
+- [x] #15 3.2 Script auto-creates `.backlog/docs/` and `.backlog/decisions/` on first run
 
 ## 4. Initial Sync and Verification
 
-- [x] 4.1 Run initial batch sync with `--full` flag
-- [x] 4.2 Commit generated stubs: `git add .backlog/docs .backlog/decisions`
-- [x] 4.3 Verify: run `backlog doc list` and `backlog decision list` to confirm canonical docs appear
-- [x] 4.4 Verify stub-to-canonical links are correct by clicking through in Backlog
-- [x] 4.5 Test delete scenario: delete a canonical doc, run sync, confirm stub is removed
-- [x] 4.6 Test rename scenario: rename a canonical doc, run sync, confirm old stub removed and new stub created
-- [x] 4.7 Test modified-only scenario: edit a canonical doc (no add/delete/rename), confirm hook does not trigger sync
+- [x] #16 4.1 Run initial batch sync with `--full` flag
+- [x] #17 4.2 Commit generated stubs: `git add .backlog/docs .backlog/decisions`
+- [x] #18 4.3 Verify: run `backlog doc list` and `backlog decision list` to confirm canonical docs appear
+- [x] #19 4.4 Verify stub-to-canonical links are correct by clicking through in Backlog
+- [x] #20 4.5 Test delete scenario: delete a canonical doc, run sync, confirm stub is removed
+- [x] #21 4.6 Test rename scenario: rename a canonical doc, run sync, confirm old stub removed and new stub created
+- [x] #22 4.7 Test modified-only scenario: edit a canonical doc (no add/delete/rename), confirm hook does not trigger sync
 
 ## 5. Validation
 
-- [x] 5.1 Run `openspec validate sync-backlog-doc-index --type change --strict` to confirm all specs are satisfied
-- [x] 5.2 Validate generated stubs conform to Backlog.md frontmatter schema
-<!-- OPENSPEC:TASKS:END -->
+- [x] #23 5.1 Run `openspec validate sync-backlog-doc-index --type change --strict` to confirm all specs are satisfied
+- [x] #24 5.2 Validate generated stubs conform to Backlog.md frontmatter schema
+<!-- AC:END -->
 
-## OpenSpec Plan
+
+
+
+
+
+
+
+
+## Implementation Plan
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PLAN:BEGIN -->
+<!-- SECTION:PLAN:BEGIN -->
 ## Task Groups
 
 ## 1. Script Implementation
@@ -357,11 +370,11 @@ Both should show canonical docs and ADRs through the generated stubs.
   - `grep -l "generated-by: adponte-backlog-doc-index" .backlog/docs/*.md .backlog/decisions/*.md | wc -l` — count generated stubs
 
 - **Commit point**: No additional commit needed for this group
-<!-- OPENSPEC:PLAN:END -->
+<!-- SECTION:PLAN:END -->
 
-## OpenSpec Verify
+## Notes
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:VERIFY:BEGIN -->
+<!-- SECTION:NOTES:BEGIN -->
 ## Simple Mode (2 checks)
 
 - [ ] Task completion: all `- [ ]` → `- [x]` in tasks.md
@@ -405,4 +418,4 @@ Both should show canonical docs and ADRs through the generated stubs.
 7. Run `openspec validate sync-backlog-doc-index --type change --json` to confirm
 
 **Re-runable:** This verify.md can be regenerated by re-running precheck and re-producing the artifact.
-<!-- OPENSPEC:VERIFY:END -->
+<!-- SECTION:NOTES:END -->

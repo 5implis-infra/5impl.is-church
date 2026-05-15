@@ -7,9 +7,10 @@ references: []
 documentation: []
 generated-by: openspec-backlog-task-sync
 ---
-## OpenSpec Proposal
+
+## Description
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PROPOSAL:BEGIN -->
+<!-- SECTION:DESCRIPTION:BEGIN -->
 ## Why
 
 O código do pre-commit hook está inline no `.git/hooks/pre-commit`, dificultando manutenção e teste. Extrair para scripts separados melhora modularidade e permite chamadas diretas.
@@ -31,11 +32,11 @@ Nenhum capability novo - é refactoring puro.
 - `.git/hooks/backlog-sync-backlog-to-docs.sh` (novo)
 - `scripts/install-backlog-sync-hook.sh` (modificado)
 - `.git/hooks/pre-commit` (modificado)
-<!-- OPENSPEC:PROPOSAL:END -->
+<!-- SECTION:DESCRIPTION:END -->
 
-## OpenSpec Design
+## Discussion
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:DESIGN:BEGIN -->
+<!-- SECTION:DISCUSSION:BEGIN -->
 ## Context
 
 O hook atual tem toda lógica inline no pre-commit. A refatoração extrai para scripts separados.
@@ -68,11 +69,11 @@ O hook atual tem toda lógica inline no pre-commit. A refatoração extrai para 
 2. Atualizar installer
 3. Re-instalar hook
 4. Testar fluxo bidirecional
-<!-- OPENSPEC:DESIGN:END -->
+<!-- SECTION:DISCUSSION:END -->
 
-## OpenSpec Tasks
+## Acceptance Criteria
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:TASKS:BEGIN -->
+<!-- AC:BEGIN -->
 ## Tasks
 
 - [x] 1.1 Create `.git/hooks/backlog-sync-docs-to-backlog.sh`
@@ -82,11 +83,11 @@ O hook atual tem toda lógica inline no pre-commit. A refatoração extrai para 
 - [x] 3.1 Run installer to install new hook structure
 - [x] 3.2 Test bidirectional sync works
 - [x] 3.3 Verify clean run (no errors)
-<!-- OPENSPEC:TASKS:END -->
+<!-- AC:END -->
 
-## OpenSpec Plan
+## Implementation Plan
 *This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- OPENSPEC:PLAN:BEGIN -->
+<!-- SECTION:PLAN:BEGIN -->
 ## Plan
 
 ### 1. Create Hook Scripts
@@ -105,4 +106,4 @@ O hook atual tem toda lógica inline no pre-commit. A refatoração extrai para 
 1. Run installer
 2. Test docs→backlog sync
 3. Test backlog→docs sync
-<!-- OPENSPEC:PLAN:END -->
+<!-- SECTION:PLAN:END -->

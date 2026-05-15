@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 
 const BACKLOG_TASKS_DIR = '.backlog/tasks';
 const BACKLOG_ARCHIVE_DIR = '.backlog/archive';
@@ -15,9 +15,7 @@ interface OpenspecChange {
 
 function getOpenspecChanges(): OpenspecChange[] {
   if (!existsSync(OPENSPEC_CHANGES_DIR)) return [];
-
-  const entries = readdirSync(OPENSPEC_CHANGES_DIR);
-  return entries
+  return readdirSync(OPENSPEC_CHANGES_DIR)
     .filter(name => {
       const dir = join(OPENSPEC_CHANGES_DIR, name);
       return statSync(dir).isDirectory() && existsSync(join(dir, 'proposal.md'));
@@ -25,73 +23,75 @@ function getOpenspecChanges(): OpenspecChange[] {
     .map(name => ({ name, dir: join(OPENSPEC_CHANGES_DIR, name) }));
 }
 
-function findExistingTaskForChange(changeName: string): string | null {
-  if (!existsSync(BACKLOG_TASKS_DIR)) return null;
-
-  const files = readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'));
-  for (const file of files) {
-    const content = readFileSync(join(BACKLOG_TASKS_DIR, file), 'utf-8');
-    if (content.includes(`title: ${changeName}`)) {
-      return file;
-    }
+function findChangeByDir(changeDir: string): OpenspecChange | null {
+  const name = changeDir.split('/').pop() || '';
+  if (existsSync(changeDir) && existsSync(join(changeDir, 'proposal.md'))) {
+    return { name, dir: changeDir };
   }
   return null;
 }
 
 function getExistingTaskId(): string {
-  const tasksDir = BACKLOG_TASKS_DIR;
-  if (!existsSync(tasksDir)) return 'task-001';
-
-  const files = readdirSync(tasksDir).filter(f => f.endsWith('.md'));
+  if (!existsSync(BACKLOG_TASKS_DIR)) return 'task-001';
+  const files = readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'));
   if (files.length === 0) return 'task-001';
 
   const ids = files
-    .map(f => {
-      const match = f.match(/^(task-\d+)/);
-      return match ? match[1] : null;
-    })
-    .filter((id): id is string => id !== null);
+    .map(f => f.match(/^(task-\d+)/)?.[1])
+    .filter(Boolean);
 
   if (ids.length === 0) return 'task-001';
-
   const maxNum = Math.max(...ids.map(id => parseInt(id.replace('task-', ''), 10)));
   return `task-${String(maxNum + 1).padStart(3, '0')}`;
 }
 
-function buildFrontmatter(taskId: string, title: string, status: string, labels: string[], references: string[], documentation: string[]): string {
-  const lines = [
+function findExistingTaskForChange(changeName: string): string | null {
+  if (!existsSync(BACKLOG_TASKS_DIR)) return null;
+  for (const file of readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'))) {
+    const content = readFileSync(join(BACKLOG_TASKS_DIR, file), 'utf-8');
+    if (content.includes(`title: ${changeName}`)) return file;
+  }
+  return null;
+}
+
+function buildFrontmatter(taskId: string, title: string, status: string): string {
+  return [
     '---',
     `id: ${taskId}`,
     `title: ${title}`,
     `status: ${status}`,
-    `labels: [${labels.map(l => `"${l}"`).join(', ')}]`,
-    `references: [${references.map(r => `"${r}"`).join(', ')}]`,
-    `documentation: [${documentation.map(d => `"${d}"`).join(', ')}]`,
+    'labels: ["openspec", "sync"]',
+    'references: []',
+    'documentation: []',
     `generated-by: ${OPENSPEC_MARKER}`,
     '---',
     '',
-  ];
-  return lines.join('\n');
+  ].join('\n');
 }
 
+const SECTION_MAP: Record<string, { label: string; marker: string }> = {
+  proposal: { label: 'Description', marker: 'SECTION:DESCRIPTION' },
+  design: { label: 'Discussion', marker: 'SECTION:DISCUSSION' },
+  tasks: { label: 'Acceptance Criteria', marker: 'AC' },
+  plan: { label: 'Implementation Plan', marker: 'SECTION:PLAN' },
+  verify: { label: 'Notes', marker: 'SECTION:NOTES' },
+  'specs-summary': { label: 'Specifications', marker: 'SECTION:SPECIFICATIONS' },
+};
+
 function embedSnapshot(content: string, sectionName: string): string {
-  const header = `## OpenSpec ${sectionName.charAt(0).toUpperCase() + sectionName.slice(1).replace(/-/g, ' ')}\n*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*\n`;
-  return `${header}<!-- OPENSPEC:${sectionName.toUpperCase()}:BEGIN -->\n${content}\n<!-- OPENSPEC:${sectionName.toUpperCase()}:END -->`;
+  const config = SECTION_MAP[sectionName] || { label: sectionName, marker: sectionName.toUpperCase() };
+  const header = `## ${config.label}\n*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*\n`;
+  return `${header}<!-- ${config.marker}:BEGIN -->\n${content}\n<!-- ${config.marker}:END -->`;
 }
 
 function parseTaskChecklist(tasksMdPath: string): { total: number; checked: number } {
   if (!existsSync(tasksMdPath)) return { total: 0, checked: 0 };
-
-  const content = readFileSync(tasksMdPath, 'utf-8');
-  const items = content.match(/^- \[([ x])\]/g) || [];
-  const checked = items.filter(m => m.includes('[x]')).length;
-
-  return { total: items.length, checked };
+  const items = readFileSync(tasksMdPath, 'utf-8').match(/^- \[([ x])\]/g) || [];
+  return { total: items.length, checked: items.filter(m => m.includes('[x]')).length };
 }
 
 function deriveBacklogStatus(progress: { total: number; checked: number }): string {
-  if (progress.total === 0) return 'To Do';
-  if (progress.checked === 0) return 'To Do';
+  if (progress.total === 0 || progress.checked === 0) return 'To Do';
   if (progress.checked === progress.total) return 'Done';
   return 'In Progress';
 }
@@ -105,60 +105,30 @@ function generateTaskBody(changeDir: string): string {
   ];
 
   const verifyPath = join(changeDir, 'verify.md');
-  if (existsSync(verifyPath)) {
-    artifacts.push({ name: 'verify', path: verifyPath });
-  }
+  if (existsSync(verifyPath)) artifacts.push({ name: 'verify', path: verifyPath });
 
   const specsDir = join(changeDir, 'specs');
   if (existsSync(specsDir)) {
     const specFiles = readdirSync(specsDir).filter(f => f.endsWith('/spec.md'));
     if (specFiles.length > 0) {
-      const allSpecs = specFiles.map(f => readFileSync(join(specsDir, f), 'utf-8')).join('\n\n');
-      artifacts.push({ name: 'specs-summary', path: '', content: allSpecs });
+      artifacts.push({ name: 'specs-summary', path: '', content: specFiles.map(f => readFileSync(join(specsDir, f), 'utf-8')).join('\n\n') });
     }
   }
 
-  const parts: string[] = [];
-
-  for (const artifact of artifacts) {
-    let content: string;
-    if ('content' in artifact && artifact.content) {
-      content = artifact.content;
-    } else if (artifact.path && existsSync(artifact.path)) {
-      content = readFileSync(artifact.path, 'utf-8');
-    } else {
-      continue;
-    }
-
-    const truncated = content.split('\n').slice(0, 500).join('\n');
-    parts.push(embedSnapshot(truncated, artifact.name));
-    parts.push('');
-  }
-
-  return parts.join('\n');
-}
-
-function generateTaskId(title: string): string {
-  const baseId = getExistingTaskId();
-  const safeTitle = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
-  return `${baseId}-${safeTitle}`;
+  return artifacts
+    .map(artifact => {
+      let content = 'content' in artifact ? artifact.content : existsSync(artifact.path) ? readFileSync(artifact.path, 'utf-8') : null;
+      if (!content) return null;
+      return embedSnapshot(content.split('\n').slice(0, 500).join('\n'), artifact.name);
+    })
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 function writeBacklogTask(taskId: string, title: string, status: string, body: string, isArchive = false): void {
   const dir = isArchive ? BACKLOG_ARCHIVE_DIR : BACKLOG_TASKS_DIR;
-  const fileName = `${taskId} - ${title}.md`;
-  const filePath = join(dir, fileName);
-
-  const frontmatter = buildFrontmatter(
-    taskId,
-    title,
-    status,
-    ['openspec', 'sync'],
-    [],
-    []
-  );
-
-  writeFileSync(filePath, frontmatter + body, 'utf-8');
+  const filePath = join(dir, `${taskId} - ${title}.md`);
+  writeFileSync(filePath, buildFrontmatter(taskId, title, status) + '\n' + body, 'utf-8');
   console.log(`  Written: ${filePath}`);
 }
 
@@ -166,140 +136,124 @@ function isChangeArchived(changeDir: string): boolean {
   const yamlPath = join(changeDir, '.openspec.yaml');
   if (existsSync(yamlPath)) {
     const content = readFileSync(yamlPath, 'utf-8');
-    if (content.includes('status: archived') || content.includes('status: complete')) {
-      return true;
-    }
+    if (content.includes('status: archived') || content.includes('status: complete')) return true;
   }
   return false;
 }
 
-function syncChange(change: OpenspecChange, forceRegenerate = false): void {
-  console.log(`\nProcessing: ${change.name}`);
+function syncChange(change: OpenspecChange, force = false): void {
+  const { name, dir } = change;
+  console.log(`\nProcessing: ${name}`);
 
-  const proposalPath = join(change.dir, 'proposal.md');
+  const proposalPath = join(dir, 'proposal.md');
   if (!existsSync(proposalPath)) {
-    console.log(`  Skipping: no proposal.md in ${change.dir}`);
+    console.log(`  Skipping: no proposal.md`);
     return;
   }
 
-  const proposalContent = readFileSync(proposalPath, 'utf-8');
-  const titleMatch = proposalContent.match(/^#\s+(.+)/m);
-  const title = titleMatch ? titleMatch[1].trim() : change.name;
-
-  const tasksMdPath = join(change.dir, 'tasks.md');
-  const progress = parseTaskChecklist(tasksMdPath);
+  const title = readFileSync(proposalPath, 'utf-8').match(/^#\s+(.+)/m)?.[1]?.trim() || name;
+  const progress = parseTaskChecklist(join(dir, 'tasks.md'));
   const status = deriveBacklogStatus(progress);
 
-  const existingTask = findExistingTaskForChange(change.name);
-  const existingIdMatch = existingTask ? existingTask.match(/^(task-\d+)/) : null;
+  const existingTask = findExistingTaskForChange(name);
+  const existingIdMatch = existingTask?.match(/^(task-\d+)/);
   const taskId = existingIdMatch ? existingIdMatch[1] : getExistingTaskId();
-  const body = generateTaskBody(change.dir);
 
   const existingPath = join(BACKLOG_TASKS_DIR, existingTask || `${taskId} - ${title}.md`);
   const existingContent = existsSync(existingPath) ? readFileSync(existingPath, 'utf-8') : '';
-  const needsRegeneration = forceRegenerate ||
-    !existsSync(existingPath) ||
-    !existingContent.includes(OPENSPEC_MARKER) ||
-    !existingContent.includes(`<!-- OPENSPEC:PROPOSAL:BEGIN -->`);
+  const needsRegeneration = force || !existsSync(existingPath) || !existingContent.includes(OPENSPEC_MARKER);
 
   if (!needsRegeneration) {
     console.log(`  Already synced, skipping. Use --force to regenerate.`);
     return;
   }
 
-  if (isChangeArchived(change.dir)) {
-    writeBacklogTask(taskId, title, status, body, true);
+  if (isChangeArchived(dir)) {
+    writeBacklogTask(taskId, title, status, generateTaskBody(dir), true);
     const activePath = join(BACKLOG_TASKS_DIR, `${taskId} - ${title}.md`);
-    if (existsSync(activePath)) {
-      const oldContent = readFileSync(activePath, 'utf-8');
-      if (oldContent.includes(OPENSPEC_MARKER)) {
-        execSync(`rm "${activePath}"`);
-        console.log(`  Removed active task: ${activePath}`);
-      }
+    if (existsSync(activePath) && readFileSync(activePath, 'utf-8').includes(OPENSPEC_MARKER)) {
+      rmSync(activePath);
+      console.log(`  Removed active task: ${activePath}`);
     }
   } else {
-    writeBacklogTask(taskId, title, status, body, false);
+    writeBacklogTask(taskId, title, status, generateTaskBody(dir), false);
   }
 
-  console.log(`  Progress: ${progress.checked}/${progress.total} tasks, Status: ${status}`);
+  console.log(`  Progress: ${progress.checked}/${progress.total}, Status: ${status}`);
 }
 
 function validateTaskMarkdown(filePath: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-
-  if (!existsSync(filePath)) {
-    errors.push(`File does not exist: ${filePath}`);
-    return { valid: false, errors };
-  }
+  if (!existsSync(filePath)) return { valid: false, errors: [`Missing: ${filePath}`] };
 
   const content = readFileSync(filePath, 'utf-8');
+  if (!content.startsWith('---')) errors.push('Missing YAML frontmatter');
+  else if (!content.indexOf('---', 3)) errors.push('YAML frontmatter not closed');
 
-  if (!content.startsWith('---')) {
-    errors.push('Missing YAML frontmatter');
-  } else {
-    const endIdx = content.indexOf('---', 3);
-    if (endIdx === -1) {
-      errors.push('YAML frontmatter not closed');
-    }
-  }
-
-  const sections = ['PROPOSAL', 'DESIGN', 'TASKS', 'PLAN'];
-  for (const section of sections) {
-    if (!content.includes(`<!-- OPENSPEC:${section}:BEGIN -->`)) {
-      errors.push(`Missing section marker: OPENSPEC:${section}`);
-    }
+  for (const section of ['PROPOSAL', 'DESIGN', 'TASKS', 'PLAN']) {
+    const marker = section === 'TASKS' ? 'AC' : `SECTION:${section}`;
+    if (!content.includes(`<!-- ${marker}:BEGIN -->`)) errors.push(`Missing: ${section}`);
   }
 
   return { valid: errors.length === 0, errors };
 }
 
-function checkBacklogCli(): { available: boolean; error?: string } {
-  try {
-    execSync('backlog task list --plain', { stdio: 'pipe', encoding: 'utf-8' });
-    return { available: true };
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    if (errorMsg.includes('command not found') || errorMsg.includes('not found')) {
-      return { available: false, error: 'Backlog CLI not installed' };
+function isGeneratedBySync(filePath: string, marker: string): boolean {
+  if (!existsSync(filePath)) return false;
+  return readFileSync(filePath, 'utf-8').includes(marker);
+}
+
+function runFullSync(): void {
+  console.log('Running full sync — clearing synced backlog tasks...');
+
+  if (!existsSync(BACKLOG_TASKS_DIR)) {
+    console.log('No backlog tasks dir, creating...');
+  } else {
+    for (const file of readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'))) {
+      if (isGeneratedBySync(join(BACKLOG_TASKS_DIR, file), OPENSPEC_MARKER)) {
+        rmSync(join(BACKLOG_TASKS_DIR, file));
+      }
     }
-    return { available: false, error: errorMsg };
+  }
+
+  console.log('Syncing all OpenSpec changes...');
+  for (const change of getOpenspecChanges()) {
+    syncChange(change, true);
   }
 }
 
 const args = process.argv.slice(2);
-const dryRun = args.includes('--dry-run');
-const forceRegenerate = args.includes('--force');
-const changeName = args.find(a => !a.startsWith('--'));
+const isFull = args.includes('--full');
+const isForce = args.includes('--force');
+const fileArgs = args.filter(a => !a.startsWith('--'));
 
-if (changeName) {
-  const changes = getOpenspecChanges();
-  const change = changes.find(c => c.name === changeName);
-  if (change) {
-    console.log(`Syncing single change: ${changeName}${dryRun ? ' (DRY RUN)' : ''}${forceRegenerate ? ' (FORCED)' : ''}`);
-    syncChange(change, forceRegenerate);
-  } else {
-    console.error(`Change not found: ${changeName}`);
-    process.exit(1);
-  }
+if (isFull) {
+  runFullSync();
+} else if (fileArgs.length === 0) {
+  console.log('No files specified. Use --full to sync all, or pass OpenSpec change directories.');
+  process.exit(0);
 } else {
-  const changes = getOpenspecChanges();
-  console.log(`Syncing ${changes.length} OpenSpec changes${dryRun ? ' (DRY RUN)' : ''}${forceRegenerate ? ' (FORCED)' : ''}`);
-
-  for (const change of changes) {
-    syncChange(change, forceRegenerate);
+  console.log(`Syncing ${fileArgs.length} change(s)...`);
+  for (const changeDir of fileArgs) {
+    const change = findChangeByDir(changeDir);
+    if (change) syncChange(change, isForce);
+    else console.error(`  Not found or invalid: ${changeDir}`);
   }
 }
 
-const cliCheck = checkBacklogCli();
-if (!cliCheck.available) {
-  console.warn(`\nWarning: ${cliCheck.error}. Validation will proceed without CLI.`);
+console.log('\nValidating generated tasks...');
+if (existsSync(BACKLOG_TASKS_DIR)) {
+  for (const taskFile of readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'))) {
+    const result = validateTaskMarkdown(join(BACKLOG_TASKS_DIR, taskFile));
+    if (!result.valid) {
+      console.warn(`\nValidation failed for ${taskFile}:`);
+      result.errors.forEach(e => console.warn(`  - ${e}`));
+    }
+  }
 }
 
-const taskFiles = readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'));
-for (const taskFile of taskFiles) {
-  const result = validateTaskMarkdown(join(BACKLOG_TASKS_DIR, taskFile));
-  if (!result.valid) {
-    console.warn(`\nValidation failed for ${taskFile}:`);
-    result.errors.forEach(e => console.warn(`  - ${e}`));
-  }
+try {
+  execSync('backlog task list --plain', { stdio: 'pipe', encoding: 'utf-8' });
+} catch {
+  console.warn('\nWarning: Backlog CLI not available. Validation runs without CLI.');
 }

@@ -16,64 +16,55 @@ interface BacklogTask {
 
 function parseYamlFrontmatter(content: string): Record<string, unknown> | null {
   if (!content.startsWith('---')) return null;
-
   const endIdx = content.indexOf('---', 3);
   if (endIdx === -1) return null;
 
-  const yamlContent = content.slice(3, endIdx).trim();
   const result: Record<string, unknown> = {};
-
-  for (const line of yamlContent.split('\n')) {
+  for (const line of content.slice(3, endIdx).trim().split('\n')) {
     const colonIdx = line.indexOf(':');
     if (colonIdx === -1) continue;
-
     const key = line.slice(0, colonIdx).trim();
-    let value = line.slice(colonIdx + 1).trim();
-
+    let value: string | string[] = line.slice(colonIdx + 1).trim();
     if (value.startsWith('[') && value.endsWith(']')) {
       value = value.slice(1, -1).split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
     }
-
     result[key] = value;
   }
-
   return result;
 }
 
 function parseBacklogTask(filePath: string): BacklogTask | null {
   if (!existsSync(filePath)) return null;
-
   const content = readFileSync(filePath, 'utf-8');
   if (!content.includes(OPENSPEC_MARKER)) return null;
 
   const frontmatter = parseYamlFrontmatter(content);
   if (!frontmatter) return null;
 
-  const status = frontmatter['status'] as string || 'To Do';
-
   const notesMatch = content.match(/## Implementation Notes\n([\s\S]*?)(?=<!-- OPENSPEC:|$)/);
-  const notes = notesMatch ? notesMatch[1].trim() : '';
-
   const checklistMatch = content.match(/## Acceptance Criteria\n([\s\S]*?)(?=<!-- OPENSPEC:|$)/);
+
   let checklistProgress = { total: 0, checked: 0 };
   if (checklistMatch) {
     const items = checklistMatch[1].match(/^- \[([ x])\]/g) || [];
-    const checked = items.filter(m => m.includes('[x]')).length;
-    checklistProgress = { total: items.length, checked };
+    checklistProgress = { total: items.length, checked: items.filter(m => m.includes('[x]')).length };
   }
 
-  return { path: filePath, frontmatter, status, checklistProgress, notes };
+  return {
+    path: filePath,
+    frontmatter,
+    status: (frontmatter['status'] as string) || 'To Do',
+    checklistProgress,
+    notes: notesMatch?.[1].trim() || '',
+  };
 }
 
 function findCorrespondingOpenspecChange(taskId: string): string | null {
   if (!existsSync(OPENSPEC_CHANGES_DIR)) return null;
 
-  const changes = readdirSync(OPENSPEC_CHANGES_DIR);
-
-  for (const changeName of changes) {
+  for (const changeName of readdirSync(OPENSPEC_CHANGES_DIR)) {
     const changeDir = join(OPENSPEC_CHANGES_DIR, changeName);
     const tasksMdPath = join(changeDir, 'tasks.md');
-
     if (existsSync(tasksMdPath)) {
       const tasksContent = readFileSync(tasksMdPath, 'utf-8');
       if (tasksContent.includes(`task-${taskId}`) || tasksContent.includes(OPENSPEC_MARKER)) {
@@ -81,28 +72,20 @@ function findCorrespondingOpenspecChange(taskId: string): string | null {
       }
     }
   }
-
   return null;
 }
 
 function updateOpenspecStatus(changeDir: string, status: string): void {
   const yamlPath = join(changeDir, '.openspec.yaml');
-  let content = '';
+  let content = existsSync(yamlPath) ? readFileSync(yamlPath, 'utf-8') : '';
 
-  if (existsSync(yamlPath)) {
-    content = readFileSync(yamlPath, 'utf-8');
-
-    if (content.includes('status:')) {
-      content = content.replace(/status:\s*\S+/, `status: ${status.toLowerCase()}`);
-    } else {
-      content += `\nstatus: ${status.toLowerCase()}\n`;
-    }
+  if (content.includes('status:')) {
+    content = content.replace(/status:\s*\S+/, `status: ${status.toLowerCase()}`);
   } else {
-    content = `status: ${status.toLowerCase()}\nname: ${changeDir.split('/').pop()}\n`;
+    content += `\nstatus: ${status.toLowerCase()}\n`;
   }
-
   writeFileSync(yamlPath, content, 'utf-8');
-  console.log(`  Updated status to ${status} in ${yamlPath}`);
+  console.log(`  Updated status to ${status}`);
 }
 
 function updateOpenspecTasks(changeDir: string, progress: { total: number; checked: number }): void {
@@ -110,74 +93,92 @@ function updateOpenspecTasks(changeDir: string, progress: { total: number; check
   if (!existsSync(tasksMdPath)) return;
 
   let content = readFileSync(tasksMdPath, 'utf-8');
-
-  const uncheckedPattern = /(- \[ \])/g;
   let uncheckedCount = 0;
-  content = content.replace(uncheckedPattern, () => {
+  content = content.replace(/- \[ \]/g, () => {
     uncheckedCount++;
-    if (uncheckedCount <= progress.checked) {
-      return '- [x]';
-    }
-    return '- [ ]';
+    return uncheckedCount <= progress.checked ? '- [x]' : '- [ ]';
   });
-
   writeFileSync(tasksMdPath, content, 'utf-8');
-  console.log(`  Updated checklist: ${progress.checked}/${progress.total} checked`);
+  console.log(`  Updated checklist: ${progress.checked}/${progress.total}`);
 }
 
 function appendNotes(changeDir: string, notes: string): void {
   const notesPath = join(changeDir, 'notes.md');
   const timestamp = new Date().toISOString().split('T')[0];
-
   const existingContent = existsSync(notesPath) ? readFileSync(notesPath, 'utf-8') : '';
-  const newNotes = `\n\n## Notes (${timestamp})\n${notes}\n`;
-
-  writeFileSync(notesPath, existingContent + newNotes, 'utf-8');
-  console.log(`  Appended notes to ${notesPath}`);
+  writeFileSync(notesPath, existingContent + `\n\n## Notes (${timestamp})\n${notes}\n`, 'utf-8');
+  console.log(`  Appended notes`);
 }
 
-function syncBacklogTaskToOpenspec(task: BacklogTask): void {
+function syncBacklogTaskToOpenspec(task: BacklogTask, dryRun = false): void {
   const changeDir = findCorrespondingOpenspecChange(task.frontmatter['id'] as string);
 
   if (!changeDir) {
-    console.log(`  No corresponding OpenSpec change found for ${task.frontmatter['id']}`);
+    console.log(`  No corresponding OpenSpec change for ${task.frontmatter['id']}`);
     return;
   }
 
-  console.log(`  Syncing to: ${changeDir}`);
+  console.log(`  Syncing to: ${changeDir.split('/').pop()}`);
 
-  if (task.status !== 'To Do') {
+  if (task.status !== 'To Do' && !dryRun) {
     updateOpenspecStatus(changeDir, task.status);
   }
-
-  if (task.checklistProgress.total > 0) {
+  if (task.checklistProgress.total > 0 && !dryRun) {
     updateOpenspecTasks(changeDir, task.checklistProgress);
   }
-
-  if (task.notes) {
+  if (task.notes && !dryRun) {
     appendNotes(changeDir, task.notes);
   }
 }
 
-const args = process.argv.slice(2);
-const dryRun = args.includes('--dry-run');
+function runFullSync(dryRun = false): void {
+  console.log(`Reverse syncing all Backlog tasks (${dryRun ? 'DRY RUN' : 'LIVE'})...\n`);
 
-const taskFiles = readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'));
-console.log(`Reverse syncing ${taskFiles.length} Backlog tasks${dryRun ? ' (DRY RUN)' : ''}\n`);
-
-for (const taskFile of taskFiles) {
-  const taskPath = join(BACKLOG_TASKS_DIR, taskFile);
-  const task = parseBacklogTask(taskPath);
-
-  if (!task) {
-    console.log(`Skipping non-generated task: ${taskFile}`);
-    continue;
+  if (!existsSync(BACKLOG_TASKS_DIR)) {
+    console.log('No backlog tasks directory found.');
+    return;
   }
 
-  console.log(`Processing: ${taskFile}`);
-  if (!dryRun) {
-    syncBacklogTaskToOpenspec(task);
+  const taskFiles = readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'));
+  console.log(`Found ${taskFiles.length} tasks`);
+
+  for (const taskFile of taskFiles) {
+    const taskPath = join(BACKLOG_TASKS_DIR, taskFile);
+    const task = parseBacklogTask(taskPath);
+
+    if (!task) {
+      console.log(`Skipping non-generated task: ${taskFile}`);
+      continue;
+    }
+
+    console.log(`Processing: ${taskFile}`);
+    syncBacklogTaskToOpenspec(task, dryRun);
   }
 }
 
-console.log('\nReverse sync complete');
+const args = process.argv.slice(2);
+const isFull = args.includes('--full');
+const isDryRun = args.includes('--dry-run');
+const fileArgs = args.filter(a => !a.startsWith('--'));
+
+if (isFull) {
+  runFullSync(isDryRun);
+} else if (fileArgs.length === 0) {
+  console.log('No files specified. Use --full to sync all, or pass Backlog task file paths.');
+  console.log('This script is typically only run manually — not via hooks.');
+  process.exit(0);
+} else {
+  console.log(`Syncing ${fileArgs.length} task(s)...`);
+  for (const taskPath of fileArgs) {
+    const resolved = existsSync(taskPath) ? taskPath : join(BACKLOG_TASKS_DIR, taskPath);
+    const task = parseBacklogTask(resolved);
+    if (task) {
+      console.log(`Processing: ${taskPath}`);
+      syncBacklogTaskToOpenspec(task, isDryRun);
+    } else {
+      console.error(`  Not found or not generated by sync: ${taskPath}`);
+    }
+  }
+}
+
+console.log('\nReverse sync complete.');
