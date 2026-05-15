@@ -54,15 +54,18 @@ function findExistingTaskForChange(changeName: string): string | null {
   return null;
 }
 
-function buildFrontmatter(taskId: string, title: string, status: string): string {
+function buildFrontmatter(taskId: string, title: string, status: string, changeDir: string): string {
+  const changeName = changeDir.split('/').pop() || '';
+  const changePath = `openspec/changes/${changeName}`;
+
   return [
     '---',
     `id: ${taskId}`,
     `title: ${title}`,
     `status: ${status}`,
     'labels: ["openspec", "sync"]',
-    'references: []',
-    'documentation: []',
+    `references: ["${changePath}/proposal.md", "${changePath}/design.md", "${changePath}/tasks.md", "${changePath}/plan.md"]`,
+    `documentation: ["${changePath}/.openspec.yaml"]`,
     `generated-by: ${OPENSPEC_MARKER}`,
     '---',
     '',
@@ -71,17 +74,20 @@ function buildFrontmatter(taskId: string, title: string, status: string): string
 
 const SECTION_MAP: Record<string, { label: string; marker: string }> = {
   proposal: { label: 'Description', marker: 'SECTION:DESCRIPTION' },
-  design: { label: 'Discussion', marker: 'SECTION:DISCUSSION' },
   tasks: { label: 'Acceptance Criteria', marker: 'AC' },
   plan: { label: 'Implementation Plan', marker: 'SECTION:PLAN' },
-  verify: { label: 'Notes', marker: 'SECTION:NOTES' },
-  'specs-summary': { label: 'Specifications', marker: 'SECTION:SPECIFICATIONS' },
+  brainstorm: { label: 'Implementation Notes', marker: 'SECTION:NOTES' },
+  design: { label: 'Implementation Notes', marker: 'SECTION:NOTES' },
+  specs: { label: 'Implementation Notes', marker: 'SECTION:NOTES' },
+  verify: { label: 'Final Summary', marker: 'SECTION:FINAL_SUMMARY' },
+  retrospective: { label: 'Final Summary', marker: 'SECTION:FINAL_SUMMARY' },
+  dod: { label: 'Definition of Done', marker: 'DOD' },
 };
 
 function embedSnapshot(content: string, sectionName: string): string {
   const config = SECTION_MAP[sectionName] || { label: sectionName, marker: sectionName.toUpperCase() };
-  const header = `## ${config.label}\n*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*\n`;
-  return `${header}<!-- ${config.marker}:BEGIN -->\n${content}\n<!-- ${config.marker}:END -->`;
+  const header = `## ${config.label}\n\n<!-- ${config.marker}:BEGIN -->\n`;
+  return `${header}${content}\n<!-- ${config.marker}:END -->\n`;
 }
 
 function parseTaskChecklist(tasksMdPath: string): { total: number; checked: number } {
@@ -97,38 +103,77 @@ function deriveBacklogStatus(progress: { total: number; checked: number }): stri
 }
 
 function generateTaskBody(changeDir: string): string {
-  const artifacts = [
+  const sectionContents: Record<string, string[]> = {
+    'SECTION:DESCRIPTION': [],
+    'AC': [],
+    'SECTION:PLAN': [],
+    'SECTION:NOTES': [],
+    'SECTION:FINAL_SUMMARY': [],
+    'DOD': [],
+  };
+
+  const artifacts: { name: string; path: string }[] = [
     { name: 'proposal', path: join(changeDir, 'proposal.md') },
-    { name: 'design', path: join(changeDir, 'design.md') },
     { name: 'tasks', path: join(changeDir, 'tasks.md') },
     { name: 'plan', path: join(changeDir, 'plan.md') },
   ];
 
-  const verifyPath = join(changeDir, 'verify.md');
-  if (existsSync(verifyPath)) artifacts.push({ name: 'verify', path: verifyPath });
+  const addArtifact = (name: string, path: string) => {
+    if (existsSync(path)) artifacts.push({ name, path });
+  };
+
+  addArtifact('brainstorm', join(changeDir, 'brainstorm.md'));
+  addArtifact('verify', join(changeDir, 'verify.md'));
+  addArtifact('design', join(changeDir, 'design.md'));
+  addArtifact('retrospective', join(changeDir, 'retrospective.md'));
+  addArtifact('dod', join(changeDir, 'dod.md'));
 
   const specsDir = join(changeDir, 'specs');
   if (existsSync(specsDir)) {
-    const specFiles = readdirSync(specsDir).filter(f => f.endsWith('/spec.md'));
+    const specFiles: string[] = [];
+    function walkSpecDir(dir: string): void {
+      for (const entry of readdirSync(dir)) {
+        const fullPath = join(dir, entry);
+        const stat = statSync(fullPath);
+        if (stat.isDirectory()) {
+          walkSpecDir(fullPath);
+        } else if (entry === 'spec.md') {
+          specFiles.push(fullPath);
+        }
+      }
+    }
+    walkSpecDir(specsDir);
     if (specFiles.length > 0) {
-      artifacts.push({ name: 'specs-summary', path: '', content: specFiles.map(f => readFileSync(join(specsDir, f), 'utf-8')).join('\n\n') });
+      artifacts.push({ name: 'specs', path: '' });
+      const lastArtifact = artifacts[artifacts.length - 1];
+      lastArtifact.path = specFiles[0];
     }
   }
 
-  return artifacts
-    .map(artifact => {
-      let content = 'content' in artifact ? artifact.content : existsSync(artifact.path) ? readFileSync(artifact.path, 'utf-8') : null;
-      if (!content) return null;
-      return embedSnapshot(content.split('\n').slice(0, 500).join('\n'), artifact.name);
-    })
-    .filter(Boolean)
-    .join('\n\n');
+  for (const artifact of artifacts) {
+    const config = SECTION_MAP[artifact.name];
+    if (!config) continue;
+    const content = artifact.path ? readFileSync(artifact.path, 'utf-8') : null;
+    if (!content) continue;
+    const truncated = content.split('\n').slice(0, 500).join('\n');
+    sectionContents[config.marker].push(truncated);
+  }
+
+  const lines: string[] = [];
+  for (const [marker, contents] of Object.entries(sectionContents)) {
+    if (contents.length === 0) continue;
+    const config = Object.values(SECTION_MAP).find(c => c.marker === marker);
+    if (!config) continue;
+    lines.push(`## ${config.label}\n\n<!-- ${marker}:BEGIN -->\n${contents.join('\n\n')}\n<!-- ${marker}:END -->\n`);
+  }
+
+  return lines.join('\n');
 }
 
-function writeBacklogTask(taskId: string, title: string, status: string, body: string, isArchive = false): void {
+function writeBacklogTask(taskId: string, title: string, status: string, body: string, isArchive = false, changeDir = ''): void {
   const dir = isArchive ? BACKLOG_ARCHIVE_DIR : BACKLOG_TASKS_DIR;
   const filePath = join(dir, `${taskId} - ${title}.md`);
-  writeFileSync(filePath, buildFrontmatter(taskId, title, status) + '\n' + body, 'utf-8');
+  writeFileSync(filePath, buildFrontmatter(taskId, title, status, changeDir) + '\n' + body, 'utf-8');
   console.log(`  Written: ${filePath}`);
 }
 
@@ -169,20 +214,20 @@ function syncChange(change: OpenspecChange, force = false): void {
   }
 
   if (isChangeArchived(dir)) {
-    writeBacklogTask(taskId, title, status, generateTaskBody(dir), true);
+    writeBacklogTask(taskId, title, status, generateTaskBody(dir), true, dir);
     const activePath = join(BACKLOG_TASKS_DIR, `${taskId} - ${title}.md`);
     if (existsSync(activePath) && readFileSync(activePath, 'utf-8').includes(OPENSPEC_MARKER)) {
       rmSync(activePath);
       console.log(`  Removed active task: ${activePath}`);
     }
   } else {
-    writeBacklogTask(taskId, title, status, generateTaskBody(dir), false);
+    writeBacklogTask(taskId, title, status, generateTaskBody(dir), false, dir);
   }
 
   console.log(`  Progress: ${progress.checked}/${progress.total}, Status: ${status}`);
 }
 
-function validateTaskMarkdown(filePath: string): { valid: boolean; errors: string[] } {
+function validateTaskMarkdown(filePath: string, changeDir = ''): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   if (!existsSync(filePath)) return { valid: false, errors: [`Missing: ${filePath}`] };
 
@@ -190,9 +235,20 @@ function validateTaskMarkdown(filePath: string): { valid: boolean; errors: strin
   if (!content.startsWith('---')) errors.push('Missing YAML frontmatter');
   else if (!content.indexOf('---', 3)) errors.push('YAML frontmatter not closed');
 
-  for (const section of ['PROPOSAL', 'DESIGN', 'TASKS', 'PLAN']) {
-    const marker = section === 'TASKS' ? 'AC' : `SECTION:${section}`;
-    if (!content.includes(`<!-- ${marker}:BEGIN -->`)) errors.push(`Missing: ${section}`);
+  if (!content.includes(OPENSPEC_MARKER)) return { valid: true, errors: [] };
+
+  const requiredSections = new Set(['proposal', 'design', 'tasks', 'plan']);
+  if (changeDir) {
+    if (existsSync(join(changeDir, 'verify.md'))) requiredSections.add('verify');
+    if (existsSync(join(changeDir, 'specs'))) requiredSections.add('specs-summary');
+  }
+
+  for (const section of requiredSections) {
+    const config = SECTION_MAP[section];
+    if (!config) continue;
+    if (!content.includes(`<!-- ${config.marker}:BEGIN -->`)) {
+      errors.push(`Missing section: ${config.marker}`);
+    }
   }
 
   return { valid: errors.length === 0, errors };

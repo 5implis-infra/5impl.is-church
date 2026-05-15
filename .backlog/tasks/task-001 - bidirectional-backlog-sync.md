@@ -2,18 +2,14 @@
 id: task-001
 title: bidirectional-backlog-sync
 status: To Do
-assignee: []
-created_date: ''
-updated_date: '2026-05-15 06:49'
-labels:
-  - openspec
-  - sync
-dependencies: []
-priority: low
+labels: ["openspec", "sync"]
+references: ["openspec/changes/bidirectional-backlog-sync/proposal.md", "openspec/changes/bidirectional-backlog-sync/design.md", "openspec/changes/bidirectional-backlog-sync/tasks.md", "openspec/changes/bidirectional-backlog-sync/plan.md"]
+documentation: ["openspec/changes/bidirectional-backlog-sync/.openspec.yaml"]
+generated-by: openspec-backlog-task-sync
 ---
 
 ## Description
-*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
+
 <!-- SECTION:DESCRIPTION:BEGIN -->
 ## Why
 
@@ -38,51 +34,8 @@ O sync atual `docs/` → `.backlog/` gera stubs parciais que não contêm o cont
 - Novos stubs em `.backlog/` conterão conteúdo completo ao invés de stubs
 <!-- SECTION:DESCRIPTION:END -->
 
-## Discussion
-*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
-<!-- SECTION:DISCUSSION:BEGIN -->
-## Context
-
-O sistema atual gera stubs parciais em `.backlog/` que contêm apenas frontmatter e um link para o arquivo canônico. O objetivo é ter `.backlog/` como um espelho completo de `docs/` e `docs/adrs/`, com conteúdo integral disponível ao Backlog.md.
-
-## Decisions
-
-### 1. Cópia integral ao invés de stubs
-
-Cada arquivo em `.backlog/` agora contém:
-1. Frontmatter Backlog-compatible (id, title, type, created_date)
-2. Marker `generated-by: adponte-backlog-doc-index`
-3. Link canônico na primeira linha: `Canonical: [path](relative_path)`
-4. Conteúdo completo do arquivo original
-
-### 2. Hook bidirecional
-
-O pre-commit hook detecta:
-- `A`, `D`, `R` em `docs/` → regenerate `.backlog/` (existente)
-- `A`, `D`, `R` em `.backlog/` → propagate para `docs/` (novo)
-
-O hook verifica a ORIGEM da alteração para evitar loops:
-- Alteração em `docs/` → atualiza `.backlog/`
-- Alteração em `.backlog/` → atualiza `docs/`
-
-### 3. Marker para não-sobrescrita
-
-Arquivos sem `generated-by: adponte-backlog-doc-index` são ignorados em ambas direções.
-
-### 4. Conflito Docs vs Backlog
-
-Se ambos forem editados entre commits, `docs/` wins (source of truth).
-
-## Migration Plan
-
-1. Re-gerar todos os stubs com `--full` para popular `.backlog/` com conteúdo completo
-2. Instalar novo hook com handler `backlog→docs`
-3. Commitar novos stubs gerados
-4. Testar cenários de edit, delete, rename nas duas direções
-<!-- SECTION:DISCUSSION:END -->
-
 ## Acceptance Criteria
-*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
+
 <!-- AC:BEGIN -->
 ## 1. Script Modification - Full Content Sync
 
@@ -116,7 +69,7 @@ Se ambos forem editados entre commits, `docs/` wins (source of truth).
 <!-- AC:END -->
 
 ## Implementation Plan
-*This section is generated from OpenSpec. Edit the OpenSpec artifact, not this snapshot.*
+
 <!-- SECTION:PLAN:BEGIN -->
 ## Task Groups
 
@@ -213,3 +166,81 @@ After step 3 - commit "chore: regenerate backlog stubs with full content"
 ### Commit point
 After all tests pass - commit "test: add bidirectional sync verification tests"
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Agreed Scope
+
+Modificar o fluxo de sync entre `docs/` e `.backlog/` para:
+
+1. **Docs → Backlog (existente, modificado)**: Copiar o conteúdo COMPLETO do arquivo canonical para `.backlog/` ao invés de apenas gerar stubs. Incluir link canônico na primeira linha após frontmatter.
+
+2. **Backlog → Docs (NOVO)**: Criar pre-commit hook que detecta alterações em `.backlog/docs/*.md` e `.backlog/decisions/*.md` e copia o conteúdo de volta para `docs/` e `docs/adrs/` respectivamente.
+
+3. **Bidirecional**: O sync funciona em ambas direções, mantendo ambos arquivos sincronizados.
+
+## Key Constraints
+
+- Arquivos em `.backlog/` são a versão "visível pelo Backlog" mas `docs/` permanece como source of truth para o conteúdo
+- Links must be preserved: canonical path link header in each file
+- O hook deve ser idempotente e não causar loops infinitos
+- Arquivos sem o marker `generated-by` não são tocados
+
+## Alternatives Considered
+
+1. **Symlinks**: Rejeitado - Backlog não suporta bem symlinks e há problemas de portabilidade
+2. **Apenas uma direção (docs→backlog)**: Já implementado mas não cobre o caso de uso de editar via Backlog
+3. **Dupla cópia integral**: Manter cópias idênticas em ambos, com merge manual - complexo demais
+
+## Chosen Direction
+
+- Arquivos em `.backlog/` contêm conteúdo COMPLETO + link header
+- Pre-commit hook detecta mudanças em `.backlog/` e faz push para `docs/`
+- Marker `generated-by` continua marcando arquivos gerados
+- O script de sync `backlog-sync-doc-index.ts` é adaptado para fazer cópia integral
+
+## Open Questions
+
+- Como tratar conflitos se ambos forem editados? (Raro - assumir que `docs/` wins)
+- O hook de `backlog→docs` deve verificar se há alterações em `docs/` também? (Sim, para evitar sobrescrever)
+
+## Context
+
+O sistema atual gera stubs parciais em `.backlog/` que contêm apenas frontmatter e um link para o arquivo canônico. O objetivo é ter `.backlog/` como um espelho completo de `docs/` e `docs/adrs/`, com conteúdo integral disponível ao Backlog.md.
+
+## Decisions
+
+### 1. Cópia integral ao invés de stubs
+
+Cada arquivo em `.backlog/` agora contém:
+1. Frontmatter Backlog-compatible (id, title, type, created_date)
+2. Marker `generated-by: adponte-backlog-doc-index`
+3. Link canônico na primeira linha: `Canonical: [path](relative_path)`
+4. Conteúdo completo do arquivo original
+
+### 2. Hook bidirecional
+
+O pre-commit hook detecta:
+- `A`, `D`, `R` em `docs/` → regenerate `.backlog/` (existente)
+- `A`, `D`, `R` em `.backlog/` → propagate para `docs/` (novo)
+
+O hook verifica a ORIGEM da alteração para evitar loops:
+- Alteração em `docs/` → atualiza `.backlog/`
+- Alteração em `.backlog/` → atualiza `docs/`
+
+### 3. Marker para não-sobrescrita
+
+Arquivos sem `generated-by: adponte-backlog-doc-index` são ignorados em ambas direções.
+
+### 4. Conflito Docs vs Backlog
+
+Se ambos forem editados entre commits, `docs/` wins (source of truth).
+
+## Migration Plan
+
+1. Re-gerar todos os stubs com `--full` para popular `.backlog/` com conteúdo completo
+2. Instalar novo hook com handler `backlog→docs`
+3. Commitar novos stubs gerados
+4. Testar cenários de edit, delete, rename nas duas direções
+<!-- SECTION:NOTES:END -->
