@@ -56,7 +56,7 @@ After step 6 - commit "chore: add bidirectional sync to pre-commit hook"
 
 ### Micro-steps
 
-1. **Run `backlog-sync-doc-index.ts --full`** to regenerate all stubs with full content
+1. **Run `backlog-sync-doc-index.ts --full`** to regenerate all stubs with full contents
 2. **Verify content**: compare a few `.backlog/` files with original `docs/` files
 3. **Stage and commit** regenerated stubs
 
