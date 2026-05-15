@@ -1,10 +1,11 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOOK_BLOCK_START="# BACKLOG-DOC-INDEX-SYNC START"
 HOOK_BLOCK_END="# BACKLOG-DOC-INDEX-SYNC END"
 HOOK_INSTALL_MARKER="backlog-doc-index-sync-installed"
-SCRIPT_PATH="scripts/backlog-sync-doc-index.ts"
 
 show_help() {
   echo "Usage: $0 [options]"
@@ -14,6 +15,7 @@ show_help() {
 }
 
 uninstall_hook() {
+  cd "$PROJECT_DIR"
   if [ -f ".git/hooks/pre-commit" ]; then
     python3 -c "
 import sys
@@ -38,25 +40,31 @@ if start_idx is not None and end_idx is not None:
 }
 
 install_hook() {
+
+  find "$SCRIPT_DIR/.git" -name '*.sh' -exec chmod +x {} +
+
+  cd "$PROJECT_DIR"
   mkdir -p .git/hooks
 
   if [ -f ".git/hooks/pre-commit" ]; then
     if grep -q "$HOOK_INSTALL_MARKER" ".git/hooks/pre-commit" 2>/dev/null; then
-      echo "Hook already installed"
-      return
-    fi
-
-    python3 -c "
+      echo "Hook already installed, updating..."
+      python3 -c "
 import sys
 with open('.git/hooks/pre-commit', 'r') as f:
-    content = f.read()
-if '$HOOK_BLOCK_START' in content:
-    print('Hook block already exists')
-    sys.exit(0)
+    lines = f.readlines()
+start_idx = None
+end_idx = None
+for i, line in enumerate(lines):
+    if line.strip() == '# BACKLOG-DOC-INDEX-SYNC START':
+        start_idx = i
+    if line.strip() == '# BACKLOG-DOC-INDEX-SYNC END':
+        end_idx = i
+        break
+if start_idx is not None and end_idx is not None:
+    with open('.git/hooks/pre-commit', 'w') as f:
+        f.writelines(lines[:start_idx] + lines[end_idx+1:])
 "
-    if [ $? -eq 0 ]; then
-      echo "Hook block already exists, skipping install"
-      return
     fi
   fi
 
@@ -65,19 +73,13 @@ $HOOK_BLOCK_START
 # Installed by $HOOK_INSTALL_MARKER
 # Do not edit between START and END markers
 
-STAGED_DOCS_CHANGES=\$(git diff --cached --name-status | grep '^[^ ]* docs/.*\.md\$' | grep '^[ADR]' || true)
-STAGED_ADRS_CHANGES=\$(git diff --cached --name-status | grep '^[^ ]* docs/adrs/.*\.md\$' | grep '^[ADR]' || true)
-
-if [ -n "\$STAGED_DOCS_CHANGES" ] || [ -n "\$STAGED_ADRS_CHANGES" ]; then
-  echo "Backlog doc index: syncing changes..."
-  tsx "$SCRIPT_PATH"
-  echo "Backlog doc index: sync complete"
-fi
+scripts/.git/backlog-sync-docs-to-backlog.sh
+scripts/.git/backlog-sync-backlog-to-docs.sh
 $HOOK_BLOCK_END
 HOOK_EOF
 
   chmod +x ".git/hooks/pre-commit"
-  echo "Hook installed"
+  echo "Hook installed (scripts extracted)"
 }
 
 case "${1:-}" in
