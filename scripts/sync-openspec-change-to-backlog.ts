@@ -25,6 +25,19 @@ function getOpenspecChanges(): OpenspecChange[] {
     .map(name => ({ name, dir: join(OPENSPEC_CHANGES_DIR, name) }));
 }
 
+function findExistingTaskForChange(changeName: string): string | null {
+  if (!existsSync(BACKLOG_TASKS_DIR)) return null;
+
+  const files = readdirSync(BACKLOG_TASKS_DIR).filter(f => f.endsWith('.md'));
+  for (const file of files) {
+    const content = readFileSync(join(BACKLOG_TASKS_DIR, file), 'utf-8');
+    if (content.includes(`title: ${changeName}`)) {
+      return file;
+    }
+  }
+  return null;
+}
+
 function getExistingTaskId(): string {
   const tasksDir = BACKLOG_TASKS_DIR;
   if (!existsSync(tasksDir)) return 'task-001';
@@ -160,7 +173,7 @@ function isChangeArchived(changeDir: string): boolean {
   return false;
 }
 
-function syncChange(change: OpenspecChange): void {
+function syncChange(change: OpenspecChange, forceRegenerate = false): void {
   console.log(`\nProcessing: ${change.name}`);
 
   const proposalPath = join(change.dir, 'proposal.md');
@@ -177,15 +190,29 @@ function syncChange(change: OpenspecChange): void {
   const progress = parseTaskChecklist(tasksMdPath);
   const status = deriveBacklogStatus(progress);
 
-  const taskId = getExistingTaskId();
+  const existingTask = findExistingTaskForChange(change.name);
+  const existingIdMatch = existingTask ? existingTask.match(/^(task-\d+)/) : null;
+  const taskId = existingIdMatch ? existingIdMatch[1] : getExistingTaskId();
   const body = generateTaskBody(change.dir);
+
+  const existingPath = join(BACKLOG_TASKS_DIR, existingTask || `${taskId} - ${title}.md`);
+  const existingContent = existsSync(existingPath) ? readFileSync(existingPath, 'utf-8') : '';
+  const needsRegeneration = forceRegenerate ||
+    !existsSync(existingPath) ||
+    !existingContent.includes(OPENSPEC_MARKER) ||
+    !existingContent.includes(`<!-- OPENSPEC:PROPOSAL:BEGIN -->`);
+
+  if (!needsRegeneration) {
+    console.log(`  Already synced, skipping. Use --force to regenerate.`);
+    return;
+  }
 
   if (isChangeArchived(change.dir)) {
     writeBacklogTask(taskId, title, status, body, true);
     const activePath = join(BACKLOG_TASKS_DIR, `${taskId} - ${title}.md`);
     if (existsSync(activePath)) {
-      const existingContent = readFileSync(activePath, 'utf-8');
-      if (existingContent.includes(OPENSPEC_MARKER)) {
+      const oldContent = readFileSync(activePath, 'utf-8');
+      if (oldContent.includes(OPENSPEC_MARKER)) {
         execSync(`rm "${activePath}"`);
         console.log(`  Removed active task: ${activePath}`);
       }
@@ -241,24 +268,25 @@ function checkBacklogCli(): { available: boolean; error?: string } {
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
+const forceRegenerate = args.includes('--force');
 const changeName = args.find(a => !a.startsWith('--'));
 
 if (changeName) {
   const changes = getOpenspecChanges();
   const change = changes.find(c => c.name === changeName);
   if (change) {
-    console.log(`Syncing single change: ${changeName}${dryRun ? ' (DRY RUN)' : ''}`);
-    syncChange(change);
+    console.log(`Syncing single change: ${changeName}${dryRun ? ' (DRY RUN)' : ''}${forceRegenerate ? ' (FORCED)' : ''}`);
+    syncChange(change, forceRegenerate);
   } else {
     console.error(`Change not found: ${changeName}`);
     process.exit(1);
   }
 } else {
   const changes = getOpenspecChanges();
-  console.log(`Syncing ${changes.length} OpenSpec changes${dryRun ? ' (DRY RUN)' : ''}`);
+  console.log(`Syncing ${changes.length} OpenSpec changes${dryRun ? ' (DRY RUN)' : ''}${forceRegenerate ? ' (FORCED)' : ''}`);
 
   for (const change of changes) {
-    syncChange(change);
+    syncChange(change, forceRegenerate);
   }
 }
 
