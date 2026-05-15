@@ -37,7 +37,7 @@ The arc42 template consists of 12 sections:
 ### Must
 - Use the `todo` tool to track progress through the arc42 documentation workflow
 - Prefer `search/*`, `read/*`, and `edit/*` tools over terminal commands for file operations
-- Create documentation in `docs/architecture/arc42/` directory
+- Determine the target path from the schema context (e.g., for architecture-driven schema, use the path resolved by the scope artifact: `docs/concerns/<name>.md` or `docs/bounded-contexts/<name>.md`)
 - Use the template structure provided in `templates/arc42-template.md`
 - Fill in all 12 sections (mark sections as "TBD" if information is not yet available)
 - Include references to existing ADRs in Section 9 (Architecture Decisions)
@@ -87,13 +87,14 @@ Use `edit/createFile` tool (not terminal commands) to create the directory and i
 
 ### 4. Generate arc42 Document
 - Use `read/*` tool to read `templates/arc42-template.md`
-- Use `edit/createFile` to create the customized version at `docs/architecture/arc42/architecture.md`
+- Use `edit/createFile` to create the customized version at the target path determined by the schema context (e.g., `docs/concerns/<name>.md` for architecture-driven)
 - Do NOT use terminal commands like `cp` or `cat` - prefer editor tools
 
 ### 5. Fill Core Sections (Iteratively)
 Update your todo list as you complete each section.
 
 Work through sections in recommended order:
+
 1. Use `search/*` tools to find relevant content in `docs/spec.md` and feature specifications
 2. Start with **Section 1** (Introduction and Goals) - easiest to fill from spec.md
 3. Add **Section 3** (Context and Scope) - define system boundaries
@@ -146,7 +147,7 @@ For a complete architecture overview following the arc42 standard, see:
 ### 10. Commit the Documentation
 Mark your todo complete, then use terminal for git operations only:
 ```bash
-git add docs/architecture/arc42/ docs/architecture.md
+git add <target-path> docs/architecture.md
 git commit -m "docs: add arc42 architecture documentation"
 ```
 

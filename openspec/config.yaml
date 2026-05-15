@@ -8,6 +8,9 @@ context: |
   to enforce proposal commits.
 
 rules:
+  architecture-doc:
+    - Must use arc42-documentation skill
+    - May use c4-architecture skill
   brainstorm:
     - Must use brainstorming skill
   proposal:
@@ -16,13 +19,14 @@ rules:
     - Must use c4-architecture skill
     - Must use caveman skill
     - Must use improve-codebase-architecture skill
-    - Must use site-architecture skill
-    - Must use tailwind-design-system skill
-    - Must use frontend-design skill
-    - Must use ui-ux-pro-max skill
+    # Apply only when change involves frontend/design/system:
+    - Should use site-architecture skill
+    - Should use tailwind-design-system skill
+    - Should use frontend-design skill
+    - Should use ui-ux-pro-max skill
   adr:
     - Must use architecture-decision-records skill
-    - Must use c4-architecture skill
+    - May use c4-architecture skill
   specs:
     - Must use gherkin-authoring skill
   tasks:

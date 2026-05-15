@@ -12,8 +12,8 @@
 
 | Type | Resolved Path |
 |------|---------------|
-| Architecture Concern | `docs/concerns/<name>/ARCHITECTURE.md` |
-| Bounded Context | `docs/contexts/<name>/domain-model.md` |
+| Architecture Concern | `docs/concerns/<name>.md` |
+| Bounded Context | `docs/bounded-contexts/<name>.md` |
 | Subproject-local | `<subproject>/docs/ARCHITECTURE.md` |
 
 **Resolved Path:** <!-- fill in -->

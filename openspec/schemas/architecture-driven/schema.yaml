@@ -37,7 +37,7 @@ artifacts:
       `Skipped: <reason>` as the file content. This satisfies the requires dependency
       and propagates to proposal.
     requires: []
-  - id: proposal
+  - id: scope
     generates: scope.md
     description: Determines change type and resolves target doc path before any writing begins
     template: scope.md
@@ -57,8 +57,8 @@ artifacts:
 
       | Type | Target Path |
       |------|-------------|
-      | Architecture Concern | docs/concerns/<name>/ARCHITECTURE.md |
-      | Bounded Context | docs/contexts/<name>/domain-model.md |
+      | Architecture Concern | docs/concerns/<name>.md |
+      | Bounded Context | docs/bounded-contexts/<name>.md |
       | Subproject-local | <subproject>/docs/ARCHITECTURE.md |
 
       Write the resolved path in scope.md. The path resolution done here is the canonical reference for all subsequent artifacts.

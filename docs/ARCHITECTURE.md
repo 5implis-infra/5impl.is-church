@@ -163,14 +163,18 @@ Decisões arquiteturais formais para itens de escopo global do monorepo.
 
 | ADR | Título | Status |
 |---|---|---|
+| [000](adrs/000-documentation-standards.md) | Documentation Standards | Aceito |
 | [001](adrs/001-git-submodules.md) | Git Submodules Strategy | Aceito |
 | [002](adrs/002-directory-structure.md) | Directory Structure | Aceito |
 | [003](adrs/003-ci-cd.md) | CI/CD: GitHub Actions + GHCR + Coolify | Aceito |
+| [004](adrs/004-remote-cache.md) | Turborepo Remote Cache: Self-Hosted | Aceito |
+| [005](adrs/005-site-saas-separation.md) | Site Astro: Independent Repo | Aceito |
 | [006](adrs/006-product-multi-tenancy.md) | Product: Multi-Tenant SaaS for Churches | Aceito |
 | [007](adrs/007-one-repo-per-component.md) | Git Granularity: 1 Repo per Component | Aceito |
+| [008](adrs/008-api-media-workflow-split.md) | Complete Separation of `site` and `saas` | Aceito |
 | [009](adrs/009-n8n-ownership.md) | Separation of `services/api` and `services/media-workflow` | Aceito |
 
-## ADRs Resolvidos (anteriormente TBDs)
+## ADRs Pendentes de Decisão / TBDs
 
 | ADR | Título | Resolved |
 |---|---|---|

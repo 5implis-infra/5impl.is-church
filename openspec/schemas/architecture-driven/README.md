@@ -43,9 +43,11 @@ The `scope` artifact resolves the target path using three routing questions:
 
 | Type | Target Path |
 |------|-------------|
-| Architecture Concern | `docs/concerns/<name>/ARCHITECTURE.md` |
-| Bounded Context | `docs/contexts/<name>/domain-model.md` |
+| Architecture Concern | `docs/concerns/<name>.md` |
+| Bounded Context | `docs/bounded-contexts/<name>.md` |
 | Subproject-local | `<subproject>/docs/ARCHITECTURE.md` |
+
+**Note:** `docs/concerns/` and `docs/bounded-contexts/` live at the monorepo root only. Subprojects use `<subproject>/docs/ARCHITECTURE.md` and `<subproject>/docs/adrs/`.
 
 ## arc42 Section Map
 
