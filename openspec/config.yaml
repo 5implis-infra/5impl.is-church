@@ -14,7 +14,7 @@ rules:
   brainstorm:
     - Must use brainstorming skill
   proposal:
-    - Must use grill-me skill
+    - Should use grill-me skill when relevant scope information is missing
   design:
     - Must use c4-architecture skill
     - Must use caveman skill
