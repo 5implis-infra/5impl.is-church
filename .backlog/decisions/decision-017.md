@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [017-api-local-stack.md](../../docs/adrs/017-api-local-stack.md)
 
+# 017. API-Local Stack: Hono Lite
+
+- Status: accepted
+- Date: 2026-05-14
+
 ## Context
 
 `services/api-local` runs on a mini-PC at the church location, with limited resources and no dedicated internet. It receives media via Wi-Fi local and relays to `services/media-workflow`. The question is which framework to use.

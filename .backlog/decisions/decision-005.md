@@ -8,14 +8,12 @@ status: accepted
 
 Canonical ADR: [005-site-saas-separation.md](../../docs/adrs/005-site-saas-separation.md)
 
-## Context
+# 005. Site Astro: Independent Repo
 
-
+- Status: accepted
+- Date: 2026-04-16
+- Review: 2026-04-25
 
 ## Decision
 
-
-
-## Consequences
-
-
+`adponte-infra/site` is a completely independent Git repo. Does not share workspace, Turbo, pnpm-workspace, or tsconfig with `saas`. Stack: Astro Hybrid + Tailwind + Directus.

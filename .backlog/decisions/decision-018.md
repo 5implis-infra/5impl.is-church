@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [018-telegram-bot-language.md](../../docs/adrs/018-telegram-bot-language.md)
 
+# 018. Telegram Bot Language: Python
+
+- Status: accepted
+- Date: 2026-05-14
+
 ## Context
 
 The media approval workflow uses a Telegram bot for human review: preview + Approve/Reprocess buttons. The bot runs alongside the media workers. Language choice is between Python (consistent with media workers) and Node.js (consistent with API services).

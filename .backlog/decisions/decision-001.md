@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [001-git-submodules.md](../../docs/adrs/001-git-submodules.md)
 
+# 001. Git Submodules Strategy
+
+- Status: accepted
+- Date: 2026-04-16
+
 ## Context
 
 The `saas` contains projects with different stacks (Next.js, Expo, Hono, Python) that evolve at different rates.

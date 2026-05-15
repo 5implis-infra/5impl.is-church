@@ -37,3 +37,7 @@ __pycache__/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Backlog generated stubs
+#.backlog/docs/
+#.backlog/decisions/

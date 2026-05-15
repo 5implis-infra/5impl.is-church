@@ -8,14 +8,11 @@ status: accepted
 
 Canonical ADR: [006-product-multi-tenancy.md](../../docs/adrs/006-product-multi-tenancy.md)
 
-## Context
+# 006. Product: Multi-Tenant SaaS for Churches
 
-
+- Status: accepted
+- Date: 2026-04-16
 
 ## Decision
 
-
-
-## Consequences
-
-
+Multi-tenant SaaS platform for church management. Multi-tenancy via `churchId`/`slug` in all domain models. Module enablement via feature flags + subscription plans.

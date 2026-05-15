@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [009-n8n-ownership.md](../../docs/adrs/009-n8n-ownership.md)
 
+# 009. Separation of `services/api` and `services/media-workflow`
+
+- Status: accepted
+- Date: 2026-05-07
+
 ## Context
 
 The product has two distinct types of systemic operation: CRUD/business rules (request/response) and media workflow orchestration (event-driven, long-running).

@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [014-authentication-library.md](../../docs/adrs/014-authentication-library.md)
 
+# 014. Authentication Library: Better Auth
+
+- Status: accepted
+- Date: 2026-05-14
+
 ## Context
 
 The product requires sessions, 2FA, social login, and per-filial token management. Candidate libraries: Better Auth, Lucia, Auth.js v5, or a custom solution with Hono middleware.

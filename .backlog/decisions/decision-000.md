@@ -8,6 +8,12 @@ status: accepted
 
 Canonical ADR: [000-documentation-standards.md](../../docs/adrs/000-documentation-standards.md)
 
+# 000. Documentation Standards
+
+- Status: accepted
+- Date: 2026-05-14
+- Pre-ADR: Existed before all other ADRs — foundational documentation contract
+
 ## Context
 
 The AD Ponte SaaS monorepo contains 22 subprojects. Without clear documentation standards, documents overlap, duplicate, and contradict each other, causing confusion for AI agents and developers alike.

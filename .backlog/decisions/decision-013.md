@@ -8,6 +8,12 @@ status: accepted
 
 Canonical ADR: [013-multi-tenancy-database-isolation.md](../../docs/adrs/013-multi-tenancy-database-isolation.md)
 
+# 013. Multi-Tenancy Database Isolation
+
+- Status: accepted
+- Date: 2026-05-14
+- Supersedes: ADR-006 (partial)
+
 ## Context
 
 The product requires multi-tenant data isolation. Two architectural approaches are on the table:

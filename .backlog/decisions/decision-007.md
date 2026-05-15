@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [007-one-repo-per-component.md](../../docs/adrs/007-one-repo-per-component.md)
 
+# 007. Git Granularity: 1 Repo per Component
+
+- Status: accepted
+- Date: 2026-04-25
+
 ## Context
 
 In v1, `gestao` was an internal mini-monorepo with multiple apps/services/packages, creating coupling between components with different release cycles.

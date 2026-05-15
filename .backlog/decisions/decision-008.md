@@ -8,14 +8,11 @@ status: accepted
 
 Canonical ADR: [008-api-media-workflow-split.md](../../docs/adrs/008-api-media-workflow-split.md)
 
-## Context
+# 008. Complete Separation of `site` and `saas`
 
-
+- Status: accepted
+- Date: 2026-04-25
 
 ## Decision
 
-
-
-## Consequences
-
-
+`site` and `saas` are completely independent Git repositories. There is no third aggregator repo above the two.

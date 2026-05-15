@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [015-payment-gateway.md](../../docs/adrs/015-payment-gateway.md)
 
+# 015. Payment Gateway: Asaas
+
+- Status: accepted
+- Date: 2026-05-14
+
 ## Context
 
 The product needs to collect payments: PIX, boleto, card, and installments. Candidates: Asaas (Brazil-focused, native PIX), Pagar.me (Stripe-backed), or Stripe + Pagar.me for PIX.

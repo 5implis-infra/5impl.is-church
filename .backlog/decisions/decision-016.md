@@ -8,6 +8,11 @@ status: accepted
 
 Canonical ADR: [016-notifications-stack.md](../../docs/adrs/016-notifications-stack.md)
 
+# 016. Notifications Stack
+
+- Status: accepted
+- Date: 2026-05-14
+
 ## Context
 
 The Notifications module needs to support multiple channels: push (FCM), email (Resend), and WhatsApp (Evolution API or Twilio). Each channel has different delivery characteristics, pricing, and integration complexity.

@@ -8,14 +8,11 @@ status: planned
 
 Canonical ADR: [004-remote-cache.md](../../docs/adrs/004-remote-cache.md)
 
-## Context
+# 004. Turborepo Remote Cache: Self-Hosted
 
-
+- Status: planned
+- Date: 2026-04-16
 
 ## Decision
 
-
-
-## Consequences
-
-
+`ducktors/turborepo-remote-cache` on the own Hetzner VPS. Avoids unnecessary rebuilds between local machines and CI.
