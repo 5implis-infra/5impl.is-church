@@ -232,6 +232,28 @@ Total: 22 submodules. Ver `.gitmodules` para URLs completas.
 
 ---
 
+## Desenvolvimento com OpenSpec
+
+Este projeto usa **OpenSpec** como framework de Spec-Driven Development (SDD).
+Todo trabalho parte de um change em `openspec/changes/` — nada se faz sem ele.
+
+**Fluxo padrão:**
+```
+/opsx:propose ──► /opsx:apply ──► /opsx:sync ──► /opsx:archive
+```
+
+| Intenção                                | Comando                      |
+| --------------------------------------- | ---------------------------- |
+| "Inicie feature X"                      | `/opsx:propose add-feature-x`|
+| "Vamos explorar antes de planejar"      | `/opsx:explore [tema]`        |
+| "Implante a change atual"               | `/opsx:apply [nome]`          |
+| "Verifique implementação"               | `/opsx:verify [nome]`         |
+| "Finalize a change"                    | `/opsx:archive [nome]`        |
+
+**Referência completa:** [docs/OPENSPEC.md](docs/OPENSPEC.md)
+
+---
+
 ## Specs Relacionados
 
 | Spec | Descrição |
@@ -240,8 +262,8 @@ Total: 22 submodules. Ver `.gitmodules` para URLs completas.
 | [monorepo-root-readme](../openspec/specs/monorepo-root-readme/spec.md) | Porta de entrada, quickstart, tabela de componentes |
 | [monorepo-architecture-doc](../openspec/specs/monorepo-architecture-doc/spec.md) | Documentação arquitetural formal |
 | [project-initial-documentation](../openspec/specs/project-initial-documentation/spec.md) | Requisitos de documentação para novos projetos |
-| [documentation-source-of-truth](../openspec/specs/documentation-source-of-truth/spec.md) | Hierarquia de documentação e regras de ownership |
-| [openspec-backlog-sync](./docs/OPENSPEC-BACKLOG.md) | OpenSpec ↔ Backlog task bidirectional sync integration |
+| [openspec-overview](docs/OPENSPEC.md) | SDD: comandos, workflows, integração Backlog.md |
+| [openspec-backlog-sync](docs/OPENSPEC-BACKLOG.md) | OpenSpec ↔ Backlog.md task + doc sync |
 
 ---
 

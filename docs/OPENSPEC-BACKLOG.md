@@ -1,10 +1,7 @@
-# OpenSpec ↔ Backlog Task Sync Integration
+# OpenSpec ↔ Backlog.md Sync Integration
 
-## Overview
-
-OpenSpec changes are the canonical source for planning and design in this monorepo. Backlog is used for daily Kanban-style execution tracking. This integration projects OpenSpec changes as self-contained Backlog tasks, keeping both systems in sync.
-
-**Key principle**: OpenSpec is canonical for content; Backlog is an operational projection.
+> Ferramenta [Backlog.md](https://github.com/MrLesk/Backlog.md) — gerenciador de conhecimento local-first em Markdown.
+> Este projeto projeta OpenSpec changes e documentação canônica como tasks e docs no Backlog.
 
 ---
 
@@ -21,12 +18,36 @@ OpenSpec (canonical)  ──────→  Backlog (projection)
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/sync-openspec-change-to-backlog.ts` | Main sync: OpenSpec → Backlog |
+| `scripts/sync-openspec-change-to-backlog.ts` | Main sync: OpenSpec → Backlog tasks |
 | `scripts/sync-backlog-task-to-openspec.ts` | Reverse sync: Backlog → OpenSpec |
+| `scripts/backlog-sync-doc-index.ts` | Sync: `docs/` + `docs/adrs/` → `.backlog/docs/` + `.backlog/decisions/` |
+| `scripts/backlog-sync-backlog-to-docs.ts` | Sync reverse: `.backlog/docs/` + `.backlog/decisions/` → `docs/` |
 
-### Hook
+### Hooks
 
-Pre-commit hook: `scripts/.git/sync-openspec-changes-to-backlog.sh`
+- `scripts/.git/sync-openspec-changes-to-backlog.sh` — pre-commit: OpenSpec ↔ Backlog tasks
+- `scripts/.git/install-backlog-sync-hook.sh` — pre-commit: `docs/` ↔ Backlog docs/decisions
+
+---
+
+## Doc Index Sync (`docs/` ↔ Backlog Docs)
+
+Além do sync de tasks, este projeto mantém um **índice de documentação** no Backlog:
+
+```
+docs/                   ← Canônico
+  *.md                  → .backlog/docs/doc-<name>.md
+  adrs/*.md             → .backlog/decisions/decision-###.md
+```
+
+**O que o hook faz:**
+
+1. Ao detectar arquivos criados, modificados ou removidos em `docs/` ou `docs/adrs/`
+2. Executa `backlog-sync-doc-index.ts` (idempotente, determinístico)
+3. Gera stubs em `.backlog/docs/` e `.backlog/decisions/` com marker `generated-by: adponte-backlog-doc-index`
+4. Remove stubs whose canonical source no longer exists
+
+**Regra:** Canonical source é sempre `docs/` e `docs/adrs/`. Backlog docs são projeções read-only.
 
 ---
 
@@ -92,9 +113,13 @@ Sections embedded:
 | Tool | Role | Notes |
 |------|------|-------|
 | OpenSpec | Canonical source | Design, planning, decisions, specs |
-| Backlog | Operational projection | Daily execution, Kanban board |
+| Backlog.md | Projeção operacional | Quadro Kanban diário, docs indexados |
+| `docs/` + `docs/adrs/` | Canonical docs | Projeta para `.backlog/docs/` + `.backlog/decisions/` |
 
-**Rule**: Edit OpenSpec artifacts. Backlog tasks are generated from OpenSpec, not the other way around.
+**Regras:**
+- Artifacts OpenSpec são editados diretamente
+- Backlog tasks e docs são gerados automaticamente — não editar diretamente
+- Canonical source: `docs/` + `docs/adrs/` para documentação; `openspec/changes/` para tasks
 
 ---
 
@@ -118,14 +143,17 @@ Sections embedded:
 
 ---
 
-## Files Modified
+## Files
 
-- `.git/hooks/pre-commit` - Added new hook call
-- `.backlog/tasks/` - Generated Backlog tasks
-- `.backlog/archive/` - Generated archived tasks
-
-## Files Created
-
-- `scripts/sync-openspec-change-to-backlog.ts` - Main sync script
-- `scripts/sync-backlog-task-to-openspec.ts` - Reverse sync script
-- `scripts/.git/sync-openspec-changes-to-backlog.sh` - Pre-commit hook
+| Path | Role |
+|------|------|
+| `.backlog/tasks/` | Backlog tasks gerados de OpenSpec changes |
+| `.backlog/docs/` | Backlog stubs gerados de `docs/*.md` |
+| `.backlog/decisions/` | Backlog stubs gerados de `docs/adrs/*.md` |
+| `.backlog/archive/` | Tasks arquivadas |
+| `scripts/sync-openspec-change-to-backlog.ts` | OpenSpec → Backlog tasks sync |
+| `scripts/sync-backlog-task-to-openspec.ts` | Backlog → OpenSpec reverse sync |
+| `scripts/backlog-sync-doc-index.ts` | `docs/` → Backlog docs sync |
+| `scripts/backlog-sync-backlog-to-docs.ts` | Backlog docs → `docs/` reverse sync |
+| `scripts/.git/sync-openspec-changes-to-backlog.sh` | Hook: OpenSpec ↔ Backlog tasks |
+| `scripts/.git/install-backlog-sync-hook.sh` | Hook installer for doc index sync |

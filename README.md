@@ -2,7 +2,7 @@
 
 Plataforma de gestão para igrejas com múltiplas filiais — admin, comunicação e mídia.
 
-> Documentação completa: [AGENTS.md](AGENTS.md) · [docs/PRODUCT.md](docs/PRODUCT.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+> Documentação completa: [AGENTS.md](AGENTS.md) · [OpenSpec SDD](docs/OPENSPEC.md) · [PRODUCT.md](docs/PRODUCT.md) · [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
