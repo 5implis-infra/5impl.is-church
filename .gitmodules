@@ -1,88 +1,88 @@
 [submodule "services/api"]
 	path = services/api
-	url = git@github.com:adponte-infra/api.git
+	url = git@github.com:5implis-infra/api.git
 	branch = main
 [submodule "services/api-local"]
 	path = services/api-local
-	url = git@github.com:adponte-infra/api-local.git
+	url = git@github.com:5implis-infra/api-local.git
 	branch = main
 [submodule "services/media-workflow"]
 	path = services/media-workflow
-	url = git@github.com:adponte-infra/media-workflow.git
+	url = git@github.com:5implis-infra/media-workflow.git
 	branch = main
 [submodule "apps/admin-web"]
 	path = apps/admin-web
-	url = git@github.com:adponte-infra/admin-web.git
+	url = git@github.com:5implis-infra/admin-web.git
 	branch = main
 [submodule "apps/admin-app"]
 	path = apps/admin-app
-	url = git@github.com:adponte-infra/admin-app.git
+	url = git@github.com:5implis-infra/admin-app.git
 	branch = main
 [submodule "apps/member-app"]
 	path = apps/member-app
-	url = git@github.com:adponte-infra/member-app.git
+	url = git@github.com:5implis-infra/member-app.git
 	branch = main
 [submodule "workers/media/transcript"]
 	path = workers/media/transcript
-	url = git@github.com:adponte-infra/transcript.git
+	url = git@github.com:5implis-infra/transcript.git
 	branch = main
 [submodule "workers/media/ffmpeg"]
 	path = workers/media/ffmpeg
-	url = git@github.com:adponte-infra/worker-ffmpeg.git
+	url = git@github.com:5implis-infra/worker-ffmpeg.git
 	branch = main
 [submodule "workers/media/davinci"]
 	path = workers/media/davinci
-	url = git@github.com:adponte-infra/worker-davinci.git
+	url = git@github.com:5implis-infra/worker-davinci.git
 	branch = main
 [submodule "workers/media/images"]
 	path = workers/media/images
-	url = git@github.com:adponte-infra/worker-images.git
+	url = git@github.com:5implis-infra/worker-images.git
 	branch = main
 [submodule "workers/media/telegram-bot"]
 	path = workers/media/telegram-bot
-	url = git@github.com:adponte-infra/worker-telegram-bot.git
+	url = git@github.com:5implis-infra/worker-telegram-bot.git
 	branch = main
 [submodule "workers/system/notifications"]
 	path = workers/system/notifications
-	url = git@github.com:adponte-infra/worker-notifications.git
+	url = git@github.com:5implis-infra/worker-notifications.git
 	branch = main
 [submodule "workers/system/sync"]
 	path = workers/system/sync
-	url = git@github.com:adponte-infra/worker-sync.git
+	url = git@github.com:5implis-infra/worker-sync.git
 	branch = main
 [submodule "workers/system/scheduled-jobs"]
 	path = workers/system/scheduled-jobs
-	url = git@github.com:adponte-infra/worker-scheduled-jobs.git
+	url = git@github.com:5implis-infra/worker-scheduled-jobs.git
 	branch = main
 [submodule "packages/types"]
 	path = packages/types
-	url = git@github.com:adponte-infra/types.git
+	url = git@github.com:5implis-infra/types.git
 	branch = main
 [submodule "packages/db"]
 	path = packages/db
-	url = git@github.com:adponte-infra/db.git
+	url = git@github.com:5implis-infra/db.git
 	branch = main
 [submodule "packages/api-client"]
 	path = packages/api-client
-	url = git@github.com:adponte-infra/api-client.git
+	url = git@github.com:5implis-infra/api-client.git
 	branch = main
 [submodule "packages/auth"]
 	path = packages/auth
-	url = git@github.com:adponte-infra/auth.git
+	url = git@github.com:5implis-infra/auth.git
 	branch = main
 [submodule "packages/core"]
 	path = packages/core
-	url = git@github.com:adponte-infra/core.git
+	url = git@github.com:5implis-infra/core.git
 	branch = main
 [submodule "packages/ui"]
 	path = packages/ui
-	url = git@github.com:adponte-infra/ui.git
+	url = git@github.com:5implis-infra/ui.git
 	branch = main
 [submodule "packages/config"]
 	path = packages/config
-	url = git@github.com:adponte-infra/config.git
+	url = git@github.com:5implis-infra/config.git
 	branch = main
 [submodule "infra/n8n"]
 	path = infra/n8n
-	url = git@github.com:adponte-infra/n8n.git
+	url = git@github.com:5implis-infra/n8n.git
 	branch = main
